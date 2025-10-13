@@ -38,7 +38,8 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
-# SWITCH controllers
+# SWITCH controllers mapping
+# name - parameter list index
 SWITCHES = {
    "infra1": 13,
    "infra2": 14,
@@ -49,7 +50,8 @@ for k, v in SWITCHES.items():
       cv.Optional(k): cv.use_id(switch.Switch)
    })
 
-# NUMBER controllers
+# NUMBER controllers mapping
+# name - parameter list index
 NUMBERS = {
    "auto_close": 1,
    "operational_speed": 3,
