@@ -90,13 +90,7 @@ void GatePro::process() {
          this->current_operation = cover::COVER_OPERATION_IDLE;
          return;
       }
-      if (msg.substr(11, 7) == "Closing") {
-         this->operation_finished = false;
-         this->current_operation = cover::COVER_OPERATION_CLOSING;
-         this->last_operation_ = cover::COVER_OPERATION_CLOSING;
-         return;
-      }
-      if (msg.substr(11, 11) == "AutoClosing") {
+      if (msg.substr(11, 7) == "Closing" || msg.substr(11, 11) == "AutoClosing") {
          this->operation_finished = false;
          this->current_operation = cover::COVER_OPERATION_CLOSING;
          this->last_operation_ = cover::COVER_OPERATION_CLOSING;
