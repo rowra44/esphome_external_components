@@ -86,7 +86,7 @@ async def to_code(config):
       if i in config:
          cfg = config[i]
          sw = await cg.get_variable(cfg["switch"])
-         cg.add(var.set_switch(cfg["param"], nuswm))
+         cg.add(var.set_switch(cfg["param"], sw))
     # numbers
     for i in NUMBERS:
       if i in config:

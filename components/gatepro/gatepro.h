@@ -35,7 +35,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       text_sensor::TextSensor *txt_learn_status{nullptr};
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
 
-      // Param setter
+      // Param controllers
       void set_param(int idx, int val);
       // Numbers
       struct NumberWithIdx{
