@@ -72,14 +72,12 @@ async def to_code(config):
     # switches
     for k, v in SWITCHES.items():
       if k in config:
-         cfg = config[k]
-         sw = await cg.get_variable(CONFIG[k])
+         sw = await cg.get_variable(config[k])
          cg.add(var.set_switch(v, sw))
     # numbers
     for k, v in NUMBERS:
       if k in config:
-         cfg = config[k]
-         num = await cg.get_variable(CONFIG[k])
+         num = await cg.get_variable(config[k])
          cg.add(var.set_number(v, num))
 
     # text sensors
