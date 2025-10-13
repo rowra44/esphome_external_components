@@ -39,38 +39,29 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 # SWITCH controllers
-GP_SWITCH_SCHEMA = cv.Schema({
-   cv.Required("switch"): cv.use_id(switch.Switch),
-   cv.Required("param"): cv.int_,
-})
 SWITCHES = [
-   "stop_terminal",
-   "infra1",
-   "infra2"
+   "infra1": 13,
+   "infra2": 14,
+   "stop_terminal": 15
 ]
-for i in SWITCHES:
+for k, v in SWITCHES.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(i): GP_SWITCH_SCHEMA
+      cv.Optional(k): cv.use_id(switch.Switch)
    })
 
 # NUMBER controllers
-GP_NUMBER_SCHEMA = cv.Schema({
-   cv.Required("number"): cv.use_id(number.Number),
-   cv.Required("param"): cv.int_,
-})
 NUMBERS = [
-   "auto_close",
-   "operational_speed",
-   "decel_dist",
-   "decel_speed",
-   "max_amp",
-   "auto_close",
-   "ped_dura",   
+   "auto_close": 1,
+   "operational_speed": 3,
+   "decel_dist": 4,
+   "decel_speed": 5,
+   "max_amp": 6,
+   "ped_dura": 7   
 ]
 
-for i in NUMBERS:
+for k, v in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(i): GP_NUMBER_SCHEMA
+      cv.Optional(k): cv.use_id(number.Number)
    })
 
 async def to_code(config):
@@ -79,17 +70,17 @@ async def to_code(config):
     await cover.register_cover(var, config)
     await uart.register_uart_device(var, config)
     # switches
-    for i in SWITCHES:
-      if i in config:
-         cfg = config[i]
-         sw = await cg.get_variable(cfg["switch"])
-         cg.add(var.set_switch(cfg["param"], sw))
+    for k, v in SWITCHES.items():
+      if k in config:
+         cfg = config[k]
+         sw = await cg.get_variable(CONFIG[k])
+         cg.add(var.set_switch(v, sw))
     # numbers
-    for i in NUMBERS:
-      if i in config:
-         cfg = config[i]
-         num = await cg.get_variable(cfg["number"])
-         cg.add(var.set_number(cfg["param"], num))
+    for k, v in NUMBERS:
+      if k in config:
+         cfg = config[k]
+         num = await cg.get_variable(CONFIG[k])
+         cg.add(var.set_number(v, num))
 
     # text sensors
     if CONF_DEVINFO in config:
