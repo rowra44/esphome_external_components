@@ -75,7 +75,7 @@ async def to_code(config):
          sw = await cg.get_variable(config[k])
          cg.add(var.set_switch(v, sw))
     # numbers
-    for k, v in NUMBERS:
+    for k, v in NUMBERS.items():
       if k in config:
          num = await cg.get_variable(config[k])
          cg.add(var.set_number(v, num))
