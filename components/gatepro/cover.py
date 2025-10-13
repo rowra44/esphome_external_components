@@ -53,6 +53,14 @@ SET_BTN_SCHEMA = cv.Schema({
    cv.Required("cmd"): cv.string,
 })
 
+SLIDERS = [
+   CONF_SPEED_SLIDER,
+   CONF_DECEL_DIST_SLIDER,
+   CONF_DECEL_SPEED_SLIDER,
+   CONF_MAX_AMP,
+   CONF_AUTO_CLOSE,
+   CONF_PED_DURA]
+
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
         # buttons
@@ -62,12 +70,12 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
         cv.Optional(CONF_PED_OPEN): SET_BTN_SCHEMA,
         # numbers
-        cv.Optional(CONF_AUTO_CLOSE): SET_NUMBER_SCHEMA,
-        cv.Optional(CONF_SPEED_SLIDER): SET_NUMBER_SCHEMA,
-        cv.Optional(CONF_DECEL_DIST_SLIDER): SET_NUMBER_SCHEMA,
-        cv.Optional(CONF_DECEL_SPEED_SLIDER): SET_NUMBER_SCHEMA,
-        cv.Optional(CONF_MAX_AMP): SET_NUMBER_SCHEMA,
-        cv.Optional(CONF_PED_DURA): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_AUTO_CLOSE): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_SPEED_SLIDER): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_DECEL_DIST_SLIDER): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_DECEL_SPEED_SLIDER): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_MAX_AMP): SET_NUMBER_SCHEMA,
+        #cv.Optional(CONF_PED_DURA): SET_NUMBER_SCHEMA,
         # text sensors
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
@@ -76,6 +84,11 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_INFRA1): SET_SWITCH_SCHEMA,
         cv.Optional(CONF_INFRA2): SET_SWITCH_SCHEMA,
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
+
+for SLIDER in SLIDERS:
+   CONFIG_SCHEMA.extend({
+      cv.Optional(SLIDER): SET_NUMBER_SCHEMA
+   })
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
