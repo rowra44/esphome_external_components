@@ -37,15 +37,15 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
 
       // Param setter
       void set_param(int idx, int val);
-      // Sliders
-      struct SliderWithIdx{
+      // Numbers
+      struct NumberWithIdx{
          u_int idx;
          number::Number *slider;
-         SliderWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
+         NumberWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
       };
-      std::vector<SliderWithIdx> sliders_with_indices;
-      void set_slider(u_int param_idx, number::Number *slider) {
-         this->sliders_with_indices.push_back(SliderWithIdx(param_idx, slider));
+      std::vector<NumberWithIdx> sliders_with_indices;
+      void set_number(u_int param_idx, number::Number *slider) {
+         this->sliders_with_indices.push_back(NumberWithIdx(param_idx, slider));
       }
       // Switches
       struct SwitchWithIdx{
