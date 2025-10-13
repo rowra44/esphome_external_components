@@ -59,6 +59,7 @@ GP_NUMBER_SCHEMA = cv.Schema({
    cv.Required("param"): cv.int_,
 })
 NUMBERS = [
+   "auto_close",
    "operational_speed",
    "decel_dist",
    "decel_speed",
