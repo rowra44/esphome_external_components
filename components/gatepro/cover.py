@@ -60,7 +60,6 @@ NUMBERS = {
    "max_amp": 6,
    "ped_dura": 7   
 }
-
 for k, v in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(k): cv.use_id(number.Number)
