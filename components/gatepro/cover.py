@@ -18,26 +18,22 @@ cover.COVER_OPERATIONS.update({
 validate_cover_operation = cv.enum(cover.COVER_OPERATIONS, upper=True)
 
 # buttons
-CONF_LEARN = "set_learn"
-CONF_PARAMS_OD = "get_params"
+CONF_LEARN = "learn"
+CONF_PARAMS_OD = "params"
 CONF_REMOTE_LEARN = "remote_learn"
-CONF_PED_OPEN = "get_ped_open"
+CONF_PED_OPEN = "ped_open"
 # text sensors
-CONF_DEVINFO = "txt_devinfo"
-CONF_LEARN_STATUS = "txt_learn_status"
-# switchs
-CONF_PERMALOCK = "sw_permalock"
-CONF_INFRA1 = "sw_infra1"
-CONF_INFRA2 = "sw_infra2"
+CONF_DEVINFO = "devinfo"
+CONF_LEARN_STATUS = "learn_status"
 
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
-        # buttons
+        # BUTTON controllers
         cv.GenerateID(): cv.declare_id(GatePro),
         cv.Optional(CONF_LEARN): cv.use_id(button.Button),
         cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
         cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
-        # text sensors
+        # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
