@@ -79,7 +79,7 @@ NUMBERS = [
    "ped_dura",   
 ]
 
-for i in NUMBERS.items():
+for i in NUMBERS:
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(i): SET_NUMBER_SCHEMA
    })
@@ -102,7 +102,7 @@ async def to_code(config):
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
     # numbers
-    for i in NUMBERS.items():
+    for i in NUMBERS:
       if i in config:
          cfg = config[i]
          num = await cg.get_variable(cfg["number"])
