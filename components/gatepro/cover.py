@@ -48,11 +48,6 @@ SET_SWITCH_SCHEMA = cv.Schema({
    cv.Required("param"): cv.int_,
 })
 
-SET_BTN_SCHEMA = cv.Schema({
-   cv.Required("button"): cv.use_id(button.Button),
-   cv.Required("cmd"): cv.string,
-})
-
 SLIDERS = [
    CONF_SPEED_SLIDER,
    CONF_DECEL_DIST_SLIDER,
@@ -68,7 +63,6 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_LEARN): cv.use_id(button.Button),
         cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
         cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
-        cv.Optional(CONF_PED_OPEN): SET_BTN_SCHEMA,
         # numbers
         #cv.Optional(CONF_AUTO_CLOSE): SET_NUMBER_SCHEMA,
         #cv.Optional(CONF_SPEED_SLIDER): SET_NUMBER_SCHEMA,
@@ -107,10 +101,6 @@ async def to_code(config):
     if CONF_REMOTE_LEARN in config:
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
-    if CONF_PED_OPEN in config: 
-      cfg = config[CONF_PED_OPEN]
-      button = await cg.get_variable(cfg["button"])
-      cg.add(var.set_btn(cfg["cmd"], button))
     # numbers
     if CONF_SPEED_SLIDER in config: 
       cfg = config[CONF_SPEED_SLIDER]
