@@ -37,25 +37,10 @@ CONF_PERMALOCK = "sw_permalock"
 CONF_INFRA1 = "sw_infra1"
 CONF_INFRA2 = "sw_infra2"
 
-
-SET_NUMBER_SCHEMA = cv.Schema({
-   cv.Required("number"): cv.use_id(number.Number),
-   cv.Required("param"): cv.int_,
-})
-
 SET_SWITCH_SCHEMA = cv.Schema({
    cv.Required("switch"): cv.use_id(switch.Switch),
    cv.Required("param"): cv.int_,
 })
-
-NUMBERS = {
-   "CONF_NUM_OP_SPEED": "operational_speed",
-   "CONF_NUM_DECEL_DIST": "decel_dist",
-   "CONF_NUM_DECEL_SPEED": "decel_speed",
-   "CONF_NUM_MAX_AMP": "max_amp",
-   "CONF_NUM_AUTO_CLOSE": "auto_close",
-   "CONF_NUM_PED_DURA": "ped_dura",   
-}
 
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
@@ -80,10 +65,22 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_INFRA2): SET_SWITCH_SCHEMA,
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
-# extend cs with numbers
+# NUMBER controllers
+SET_NUMBER_SCHEMA = cv.Schema({
+   cv.Required("number"): cv.use_id(number.Number),
+   cv.Required("param"): cv.int_,
+})
+NUMBERS = {
+   "CONF_NUM_OP_SPEED": "operational_speed",
+   "CONF_NUM_DECEL_DIST": "decel_dist",
+   "CONF_NUM_DECEL_SPEED": "decel_speed",
+   "CONF_NUM_MAX_AMP": "max_amp",
+   "CONF_NUM_AUTO_CLOSE": "auto_close",
+   "CONF_NUM_PED_DURA": "ped_dura",   
+}
 for k, v in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(k): SET_NUMBER_SCHEMA
+      cv.Optional(v): SET_NUMBER_SCHEMA
    })
 
 async def to_code(config):
@@ -106,7 +103,7 @@ async def to_code(config):
     # numbers
     for k, v in NUMBERS.items():
       if k in config:
-         cfg = config[k]
+         cfg = config[v]
          num = await cg.get_variable(cfg["number"])
          cg.add(var.set_slider(cfg["param"], num))
     #if CONF_SPEED_SLIDER in config: 
