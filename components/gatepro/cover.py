@@ -48,13 +48,14 @@ SET_SWITCH_SCHEMA = cv.Schema({
    cv.Required("param"): cv.int_,
 })
 
-SLIDERS = [
-   CONF_SPEED_SLIDER,
-   CONF_DECEL_DIST_SLIDER,
-   CONF_DECEL_SPEED_SLIDER,
-   CONF_MAX_AMP,
-   CONF_AUTO_CLOSE,
-   CONF_PED_DURA]
+NUMBERS = {
+   "CONF_NUM_OP_SPEED": "operational_speed",
+   "CONF_NUM_DECEL_DIST": "decel_dist",
+   "CONF_NUM_DECEL_SPEED": "decel_speed",
+   "CONF_NUM_MAX_AMP": "max_amp",
+   "CONF_NUM_AUTO_CLOSE": "auto_close",
+   "CONF_NUM_PED_DURA": "ped_dura",   
+}
 
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
@@ -79,9 +80,10 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_INFRA2): SET_SWITCH_SCHEMA,
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
-for SLIDER in SLIDERS:
+# extend cs with numbers
+for k, v in NUMBERS:
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(SLIDER): SET_NUMBER_SCHEMA
+      cv.Optional(k): SET_NUMBER_SCHEMA
    })
 
 async def to_code(config):
@@ -102,30 +104,35 @@ async def to_code(config):
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
     # numbers
-    if CONF_SPEED_SLIDER in config: 
-      cfg = config[CONF_SPEED_SLIDER]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
-    if CONF_DECEL_DIST_SLIDER in config: 
-      cfg = config[CONF_DECEL_DIST_SLIDER]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
-    if CONF_DECEL_SPEED_SLIDER in config: 
-      cfg = config[CONF_DECEL_SPEED_SLIDER]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
-    if CONF_MAX_AMP in config: 
-      cfg = config[CONF_MAX_AMP]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
-    if CONF_AUTO_CLOSE in config: 
-      cfg = config[CONF_AUTO_CLOSE]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
-    if CONF_PED_DURA in config: 
-      cfg = config[CONF_PED_DURA]
-      slider = await cg.get_variable(cfg["number"])
-      cg.add(var.set_slider(cfg["param"], slider))
+    for k, v in NUMBERS:
+      if k in config:
+         cfg = config[k]
+         num = await cg.get_variable(cfg["number"])
+         cg.add(var.set_slider(cfg["param"], num))
+    #if CONF_SPEED_SLIDER in config: 
+    #  cfg = config[CONF_SPEED_SLIDER]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
+    #if CONF_DECEL_DIST_SLIDER in config: 
+    #  cfg = config[CONF_DECEL_DIST_SLIDER]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
+    #if CONF_DECEL_SPEED_SLIDER in config: 
+    #  cfg = config[CONF_DECEL_SPEED_SLIDER]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
+    #if CONF_MAX_AMP in config: 
+    #  cfg = config[CONF_MAX_AMP]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
+    #if CONF_AUTO_CLOSE in config: 
+    #  cfg = config[CONF_AUTO_CLOSE]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
+    #if CONF_PED_DURA in config: 
+    #  cfg = config[CONF_PED_DURA]
+    #  slider = await cg.get_variable(cfg["number"])
+    #  cg.add(var.set_slider(cfg["param"], slider))
     # text sensors
     if CONF_DEVINFO in config:
       txt = await cg.get_variable(config[CONF_DEVINFO])
