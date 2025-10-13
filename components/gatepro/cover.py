@@ -70,17 +70,18 @@ SET_NUMBER_SCHEMA = cv.Schema({
    cv.Required("number"): cv.use_id(number.Number),
    cv.Required("param"): cv.int_,
 })
-NUMBERS = {
-   "CONF_NUM_OP_SPEED": "operational_speed",
-   "CONF_NUM_DECEL_DIST": "decel_dist",
-   "CONF_NUM_DECEL_SPEED": "decel_speed",
-   "CONF_NUM_MAX_AMP": "max_amp",
-   "CONF_NUM_AUTO_CLOSE": "auto_close",
-   "CONF_NUM_PED_DURA": "ped_dura",   
-}
-for k, v in NUMBERS.items():
+NUMBERS = [
+   "operational_speed",
+   "decel_dist",
+   "decel_speed",
+   "max_amp",
+   "auto_close",
+   "ped_dura",   
+]
+
+for i in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(v): SET_NUMBER_SCHEMA
+      cv.Optional(i): SET_NUMBER_SCHEMA
    })
 
 async def to_code(config):
@@ -101,9 +102,9 @@ async def to_code(config):
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
     # numbers
-    for k, v in NUMBERS.items():
-      if k in config:
-         cfg = config[v]
+    for i in NUMBERS.items():
+      if i in config:
+         cfg = config[i]
          num = await cg.get_variable(cfg["number"])
          cg.add(var.set_slider(cfg["param"], num))
     #if CONF_SPEED_SLIDER in config: 
