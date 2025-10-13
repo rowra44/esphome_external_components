@@ -86,7 +86,7 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 for SLIDER in SLIDERS:
-   CONFIG_SCHEMA.extend({
+   CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(SLIDER): SET_NUMBER_SCHEMA
    })
 
