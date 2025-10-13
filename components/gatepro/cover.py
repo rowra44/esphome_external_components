@@ -81,7 +81,7 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 # extend cs with numbers
-for k, v in NUMBERS:
+for k, v in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(k): SET_NUMBER_SCHEMA
    })
@@ -104,7 +104,7 @@ async def to_code(config):
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
     # numbers
-    for k, v in NUMBERS:
+    for k, v in NUMBERS.items():
       if k in config:
          cfg = config[k]
          num = await cg.get_variable(cfg["number"])
