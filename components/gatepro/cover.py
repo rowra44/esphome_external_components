@@ -39,25 +39,25 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 # SWITCH controllers
-SWITCHES = [
+SWITCHES = {
    "infra1": 13,
    "infra2": 14,
    "stop_terminal": 15
-]
+}
 for k, v in SWITCHES.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(k): cv.use_id(switch.Switch)
    })
 
 # NUMBER controllers
-NUMBERS = [
+NUMBERS = {
    "auto_close": 1,
    "operational_speed": 3,
    "decel_dist": 4,
    "decel_speed": 5,
    "max_amp": 6,
    "ped_dura": 7   
-]
+}
 
 for k, v in NUMBERS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
