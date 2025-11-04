@@ -136,8 +136,8 @@ namespace protocol {
     static const uint8_t SET_CONST_BIT_MASK    = 0b00000010;
 
     /* time constraints */
-    static const unsigned long TIME_REFRESH_PERIOD_MS   = 1000;
-    static const unsigned long TIME_TIMEOUT_INACTIVE_MS = 60000;
+    static const unsigned long TIME_REFRESH_PERIOD_MS   =  1000;
+    static const unsigned long TIME_TIMEOUT_INACTIVE_MS = 5000;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -173,7 +173,7 @@ class SinclairACCNT : public SinclairAC {
 
         bool processUnitReport();
 
-        void send_packet(bool);
+        void send_packet();
 
         bool verify_packet();
         void handle_packet();
