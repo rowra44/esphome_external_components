@@ -136,8 +136,8 @@ namespace protocol {
     static const uint8_t SET_CONST_BIT_MASK    = 0b00000010;
 
     /* time constraints */
-    static const unsigned long TIME_REFRESH_PERIOD_MS   =  3000;
-    static const unsigned long TIME_TIMEOUT_INACTIVE_MS = 5000;
+    static const unsigned long TIME_REFRESH_PERIOD_MS   =  10000;
+    static const unsigned long TIME_TIMEOUT_INACTIVE_MS = 60000;
 }
 
 /* Define packets from AC that would be processed by software */
