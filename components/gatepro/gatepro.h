@@ -83,15 +83,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void publish_params();
       void write_params();
       std::queue<std::function<void()>> paramTaskQueue;
-      GateProCmd find_cmd_by_string(const std::string &input) {
-         for (const auto &[cmd, str] : GateProCmdMapping) {
-            if (input == str) {
-               return cmd;
-            }
-         }
-         return GATEPRO_CMD_NONE;
-      }
-
 
       // abstract (cover) logic
       void control(const cover::CoverCall &call) override;
