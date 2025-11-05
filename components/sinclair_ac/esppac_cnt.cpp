@@ -648,7 +648,7 @@ void SinclairACCNT::handle_packet()
     {
         bool newdata = false;
         
-        /* here we will remove unnecessary elements - header and checksum */
+        /* remove unnecessary elements - header and checksum */
         this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 4); /* remove header */
         this->serialProcess_.data.pop_back();  /* remove checksum */
 
@@ -688,11 +688,13 @@ void SinclairACCNT::handle_packet()
             reqmodechange = false;
             
             this->publish_state();
+        } 
+        // TESTING
+        else {
+            this->publish_state();
         }
 
-    }
-    else 
-    {
+    } else {
         ESP_LOGD(TAG, "Received unknown packet");
     }
 }
@@ -900,7 +902,7 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
 
 climate::ClimatePreset SinclairACCNT::determine_preset()
 {
-    bool    fanTurbo  = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
+    bool fanTurbo = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
 
     if (fanTurbo)
         return climate::CLIMATE_PRESET_BOOST;
