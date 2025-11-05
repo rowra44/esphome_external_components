@@ -689,10 +689,6 @@ void SinclairACCNT::handle_packet()
             
             this->publish_state();
         } 
-        // TESTING
-        else {
-            this->publish_state();
-        }
 
     } else {
         ESP_LOGD(TAG, "Received unknown packet");
