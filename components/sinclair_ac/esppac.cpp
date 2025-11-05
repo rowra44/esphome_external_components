@@ -46,11 +46,11 @@ climate::ClimateTraits SinclairAC::traits()
    
    traits.set_supported_presets({
      climate::CLIMATE_PRESET_NONE,
+     climate::CLIMATE_PRESET_BOOST,
      climate::CLIMATE_PRESET_SLEEP
    });
-   if (this->mode == climate::CLIMATE_MODE_COOL || this->mode == climate::CLIMATE_MODE_HEAT) {
-      traits.add_supported_preset(climate::CLIMATE_PRESET_BOOST);
-   }
+
+
 
     return traits;
 }
