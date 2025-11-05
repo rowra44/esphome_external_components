@@ -899,10 +899,13 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
 climate::ClimatePreset SinclairACCNT::determine_preset()
 {
     bool fanTurbo = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
+    bool sleep = (this->serialProcess_.data[protocol::REPORT_SLEEP_BYTE] & protocol::REPORT_SLEEP_MASK) != 0;
 
     if (fanTurbo)
         return climate::CLIMATE_PRESET_BOOST;
-    else 
+    else if (sleep)
+        return climate::CLIMATE_PRESET_SLEEP;
+    else
         return climate::CLIMATE_PRESET_NONE;
 }
 
