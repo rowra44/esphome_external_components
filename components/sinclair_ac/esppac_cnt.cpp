@@ -140,7 +140,7 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
     {
         ESP_LOGV(TAG, "Requested preset change");
         //if (this->mode == climate::CLIMATE_MODE_COOL ||
-            this->mode == climate::CLIMATE_MODE_HEAT) {
+        //    this->mode == climate::CLIMATE_MODE_HEAT) {
             reqmodechange = true;
             this->update_ = ACUpdate::UpdateStart;
             this->preset = call.get_preset().value();
