@@ -97,6 +97,17 @@ void SinclairACCNT::loop()
 }
 
 /*
+ * Force UI Re-render 
+ */
+void SinclairACCNT::force_ui_rerender() {
+   this->target_temperature++;
+   this->publish_state();
+   this->target_temperature--;
+   this->publish_state();
+}
+
+
+/*
  * ESPHome control request
  */
 
@@ -138,10 +149,18 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
 
     if (call.get_preset().has_value())
     {
-        ESP_LOGV(TAG, "Requested preset change");
-        reqmodechange = true;
-        this->update_ = ACUpdate::UpdateStart;
-        this->preset = call.get_preset().value();
+        // boost is only available in COOL or HEAT
+        if (this->mode == climate::CLIMATE_MODE_COOL ||
+            this->mode == climate::CLIMATE_MODE_HEAT) {
+            ESP_LOGV(TAG, "Requested preset change");
+            reqmodechange = true;
+            this->update_ = ACUpdate::UpdateStart;
+            this->preset = call.get_preset().value();
+        // otherwise a ui re-render has to be forced by momentarily faking for e.g. changing temp., because
+        // preset is not a trait that requires re-render..
+        } else {
+            force_ui_rerender();
+        }
         this->mode = climate::CLIMATE_MODE_COOL;
     }
 
