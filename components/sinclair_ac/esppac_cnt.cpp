@@ -142,7 +142,7 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
         reqmodechange = true;
         this->update_ = ACUpdate::UpdateStart;
         this->preset = call.get_preset().value();
-        this->action = climate::CLIMATE_ACTION_IDLE;
+        this->mode = climate::CLIMATE_MODE_COOL;
     }
 
     if (call.get_swing_mode().has_value())
