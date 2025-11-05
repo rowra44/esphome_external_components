@@ -146,6 +146,7 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
             this->preset = call.get_preset().value();
             ESP_LOGV(TAG, "Boost preset is possible, because Mode is COOL or HEAT");
         } else {
+            reqmodechange = true; // Necessary so that HA gets notified that the change didn't go through
             ESP_LOGV(TAG, "Boost preset is not possible, because Mode is NOT COOL or HEAT");
         }
     }
