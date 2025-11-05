@@ -328,7 +328,7 @@ void SinclairACCNT::send_packet()
 
     packet[protocol::REPORT_FAN_SPD1_BYTE] |= (fanSpeed1 << protocol::REPORT_FAN_SPD1_POS);
     packet[protocol::REPORT_FAN_SPD2_BYTE] |= (fanSpeed2 << protocol::REPORT_FAN_SPD2_POS);
-    
+
     
     /* VERTICAL SWING --------------------------------------------------------------------------- */
     uint8_t mode_vertical_swing = protocol::REPORT_VSWING_OFF;
@@ -867,7 +867,7 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
     else 
     {
         ESP_LOGW(TAG, "Received unknown fan mode");
-        return fan_modes::FAN_AUTO;
+        return climate::CLIMATE_FAN_AUTO;
     }
     
 }
