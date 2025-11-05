@@ -161,7 +161,6 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
         } else {
             force_ui_rerender();
         }
-        this->mode = climate::CLIMATE_MODE_COOL;
     }
 
     if (call.get_swing_mode().has_value())
