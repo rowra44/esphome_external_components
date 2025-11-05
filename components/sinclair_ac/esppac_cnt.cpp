@@ -331,8 +331,7 @@ void SinclairACCNT::send_packet()
     // packet[protocol::REPORT_FAN_SPD1_BYTE] |= (fanSpeed1 << protocol::REPORT_FAN_SPD1_POS);
     // packet[protocol::REPORT_FAN_SPD2_BYTE] |= (fanSpeed2 << protocol::REPORT_FAN_SPD2_POS);
     
-   
-    
+    fanTurbo = this->preset == climate::CLIMATE_PRESET_BOOST;   
     if (fanTurbo)
     {
         packet[protocol::REPORT_FAN_TURBO_BYTE] |= protocol::REPORT_FAN_TURBO_MASK;
@@ -695,9 +694,13 @@ bool SinclairACCNT::processUnitReport()
     this->mode = newMode;
 
     //std::string newFanMode = determine_fan_mode();
-    climate::ClimateFanMode newFanMode= determine_fan_mode();
+    climate::ClimateFanMode newFanMode = determine_fan_mode();
     if (this->fan_mode != newFanMode) hasChanged = true;
     this->fan_mode = newFanMode;
+
+    climate::ClimatePreset newPreset = determine_preset();
+    if (this->preset != newPreset) hasChanged = true;
+    this->preset = newPreset;
     
     //float newTargetTemperature = (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
      //   + protocol::REPORT_TEMP_SET_OFF);
@@ -818,12 +821,13 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
     //uint8_t fanSpeed2 = (this->serialProcess_.data[protocol::REPORT_FAN_SPD2_BYTE]  & protocol::REPORT_FAN_SPD2_MASK) >> protocol::REPORT_FAN_SPD2_POS;
     //bool    fanQuiet  = (this->serialProcess_.data[protocol::REPORT_FAN_QUIET_BYTE] & protocol::REPORT_FAN_QUIET_MASK) != 0;
     
-    bool    fanTurbo  = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
+    //bool    fanTurbo  = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
     uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD2_BYTE] & protocol::REPORT_FAN_MODE_MASK);
 
-    if (fanTurbo)
-        return climate::CLIMATE_FAN_HIGH; // TO DO!! TURBO
-    else if (fan_mode == 0)
+    //if (fanTurbo)
+    //    return climate::CLIMATE_FAN_HIGH; // TO DO!! TURBO
+    //else if (fan_mode == 0)
+    if (fan_mode == 0)
         return climate::CLIMATE_FAN_AUTO;
     else if (fan_mode == 1)
         return climate::CLIMATE_FAN_LOW;
@@ -877,6 +881,16 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
         return fan_modes::FAN_AUTO;
     }
     */
+}
+
+climate::ClimatePreset SinclairACCNT::determine_preset()
+{
+    bool    fanTurbo  = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
+
+    if (fanTurbo)
+        return climate::CLIMATE_PRESET_BOOST;
+    else 
+        return climate::CLIMATE_PRESET_NONE;
 }
 
 std::string SinclairACCNT::determine_vertical_swing()

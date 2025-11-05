@@ -115,6 +115,8 @@ climate::ClimateTraits GreeClimate::traits() {
   traits.add_supported_preset(climate::CLIMATE_PRESET_BOOST);
   traits.add_supported_preset(climate::CLIMATE_PRESET_SLEEP);
 
+  
+
   return traits;
 }
 
