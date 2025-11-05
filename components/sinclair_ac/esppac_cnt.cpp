@@ -136,6 +136,14 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
         this->fan_mode = call.get_fan_mode().value();
     }
 
+    if (call.get_preset().has_value())
+    {
+        ESP_LOGV(TAG, "Requested preset change");
+        reqmodechange = true;
+        this->update_ = ACUpdate::UpdateStart;
+        this->preset = call.get_preset().value();
+    }
+
     if (call.get_swing_mode().has_value())
     {
         ESP_LOGV(TAG, "Requested swing mode change");
