@@ -11,55 +11,13 @@
 #include "esphome/components/button/button.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
+#include "constants.h"
 
 namespace esphome {
 namespace gatepro {
 
-enum GateProCmd : uint8_t {
-   GATEPRO_CMD_OPEN,
-   GATEPRO_CMD_CLOSE,
-   GATEPRO_CMD_STOP,
-   GATEPRO_CMD_READ_STATUS,
-   GATEPRO_CMD_READ_PARAMS,
-   GATEPRO_CMD_WRITE_PARAMS,
-   GATEPRO_CMD_LEARN,
-   GATEPRO_CMD_DEVINFO,
-   GATEPRO_CMD_READ_LEARN_STATUS,
-   GATEPRO_CMD_REMOTE_LEARN,
-   GATEPRO_CMD_CLEAR_REMOTE_LEARN, // untested
-   GATEPRO_CMD_RESTORE, // untested
-   GATEPRO_CMD_PED_OPEN, // untested
-   GATEPRO_CMD_READ_FUNCTION, // untested
-};  
-
-const std::map<GateProCmd, const char*> GateProCmdMapping = {
-   {GATEPRO_CMD_OPEN, "FULL OPEN;src=P00287D7"},
-   {GATEPRO_CMD_CLOSE, "FULL CLOSE;src=P00287D7"},
-   {GATEPRO_CMD_STOP, "STOP;src=P00287D7"},
-   {GATEPRO_CMD_READ_STATUS, "RS;src=P00287D7"},
-   {GATEPRO_CMD_READ_PARAMS, "RP,1:;src=P00287D7"},
-   {GATEPRO_CMD_WRITE_PARAMS, "WP,1:"},
-   {GATEPRO_CMD_LEARN, "AUTO LEARN;src=P00287D7"},
-   {GATEPRO_CMD_DEVINFO, "READ DEVINFO;src=P00287D7"},
-   {GATEPRO_CMD_READ_LEARN_STATUS, "READ LEARN STATUS;src=P00287D7"},
-   {GATEPRO_CMD_REMOTE_LEARN, "REMOTE LEARN;src=P00287D7"},
-   {GATEPRO_CMD_CLEAR_REMOTE_LEARN, "CLEAR REMOTE LEARN;src=P00287D7"},
-   {GATEPRO_CMD_RESTORE, "RESTORE;src=P00287D7"},
-   {GATEPRO_CMD_PED_OPEN, "PED OPEN;src=P00287D7"},
-   {GATEPRO_CMD_READ_FUNCTION, "READ FUNCTION;src=P00287D7"},
-};
-
 class GatePro : public cover::Cover, public PollingComponent, public uart::UARTDevice {
    public:
-      // perma lock
-      switch_::Switch *sw_permalock{nullptr};
-      void set_sw_permalock(switch_::Switch *sw) { sw_permalock = sw; }
-      // infra1
-      switch_::Switch *sw_infra1{nullptr};
-      void set_sw_infra1(switch_::Switch *sw) { sw_infra1 = sw; }
-      // infra2
-      switch_::Switch *sw_infra2{nullptr};
-      void set_sw_infra2(switch_::Switch *sw) { sw_infra2 = sw; }
       // auto-learn btn
       esphome::button::Button *btn_learn;
       void set_btn_learn(esphome::button::Button *btn) { btn_learn = btn; }
@@ -69,6 +27,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       // remote learn btn
       esphome::button::Button *btn_remote_learn;
       void set_btn_remote_learn(esphome::button::Button *btn) { btn_remote_learn = btn; }
+
       // devinfo
       text_sensor::TextSensor *txt_devinfo{nullptr};
       void set_txt_devinfo(esphome::text_sensor::TextSensor *txt) { txt_devinfo = txt; }
@@ -76,23 +35,38 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       text_sensor::TextSensor *txt_learn_status{nullptr};
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
 
-      // generic re-used param setter
+      // Param controllers
       void set_param(int idx, int val);
-      // speed control
-      number::Number *speed_slider{nullptr};
-      void set_speed_slider(number::Number *slider) { speed_slider = slider; }
-      // deceleration distance slider
-      number::Number *decel_dist_slider{nullptr};
-      void set_decel_dist_slider(number::Number *slider) { decel_dist_slider = slider; }
-      // deceleration speed slider
-      number::Number *decel_speed_slider{nullptr};
-      void set_decel_speed_slider(number::Number *slider) { decel_speed_slider = slider; }
-      // max amp slider
-      number::Number *max_amp_slider{nullptr};
-      void set_max_amp_slider(number::Number *slider) { max_amp_slider = slider; }
-      // max amp slider
-      number::Number *auto_close_slider{nullptr};
-      void set_auto_close_slider(number::Number *slider) { auto_close_slider = slider; }
+      // Numbers
+      struct NumberWithIdx{
+         u_int idx;
+         number::Number *slider;
+         NumberWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
+      };
+      std::vector<NumberWithIdx> sliders_with_indices;
+      void set_number(u_int param_idx, number::Number *slider) {
+         this->sliders_with_indices.push_back(NumberWithIdx(param_idx, slider));
+      }
+      // Switches
+      struct SwitchWithIdx{
+         u_int idx;
+         switch_::Switch *switch_;
+         SwitchWithIdx(u_int idx, switch_::Switch *switch_) : idx(idx), switch_(switch_) {};
+      };
+      std::vector<SwitchWithIdx> switches_with_indices;
+      void set_switch(u_int param_idx, switch_::Switch *switch_) {
+         this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
+      }
+      // Buttons
+      struct BtnWithCmd{
+         GateProCmd cmd;
+         button::Button *btn;
+         BtnWithCmd(GateProCmd cmd, button::Button *btn) : cmd(cmd), btn(btn) {};
+      };
+      std::vector<BtnWithCmd> btns_with_cmds;
+      void set_btn(std::string cmd, button::Button *btn) {
+         this->btns_with_cmds.push_back(BtnWithCmd(find_cmd_by_string(cmd), btn));
+      }
 
       void setup() override;
       void update() override;
@@ -109,7 +83,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void publish_params();
       void write_params();
       std::queue<std::function<void()>> paramTaskQueue;
-      std::string devinfo = "N/A";
 
       // abstract (cover) logic
       void control(const cover::CoverCall &call) override;

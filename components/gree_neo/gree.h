@@ -35,9 +35,15 @@ enum ac_fan: uint8_t {
 
 // not implemented yet
 enum ac_swing: uint8_t {
+<<<<<<< HEAD
   AC_SWING_OFF = 0x44,
   AC_SWING_VERTICAL = 0x14,
   AC_SWING_HORIZONTAL = 0x41,
+=======
+  AC_SWING_OFF = 0x00,
+  AC_SWING_VERTICAL = 0x10,
+  AC_SWING_HORIZONTAL = 0x01,
+>>>>>>> origin/dev
   AC_SWING_BOTH = 0x11
 };
 

@@ -12,6 +12,7 @@ static const char* TAG = "gatepro";
 // Helper / misc functions
 ////////////////////////////////////////////
 void GatePro::queue_gatepro_cmd(GateProCmd cmd) {
+   ESP_LOGD(TAG, "Queuing cmd: %s", GateProCmdMapping.at(cmd));
    this->tx_queue.push(GateProCmdMapping.at(cmd));
 }
 
@@ -89,13 +90,7 @@ void GatePro::process() {
          this->current_operation = cover::COVER_OPERATION_IDLE;
          return;
       }
-      if (msg.substr(11, 7) == "Closing") {
-         this->operation_finished = false;
-         this->current_operation = cover::COVER_OPERATION_CLOSING;
-         this->last_operation_ = cover::COVER_OPERATION_CLOSING;
-         return;
-      }
-      if (msg.substr(11, 11) == "AutoClosing") {
+      if (msg.substr(11, 7) == "Closing" || msg.substr(11, 11) == "AutoClosing") {
          this->operation_finished = false;
          this->current_operation = cover::COVER_OPERATION_CLOSING;
          this->last_operation_ = cover::COVER_OPERATION_CLOSING;
@@ -115,13 +110,13 @@ void GatePro::process() {
    }
 
    // Devinfo example: ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
-   if (msg.substr(0, 16) == "ACK READ DEVINFO") {
+   if (msg.substr(0, 16) == "ACK READ DEVINFO" && this->txt_devinfo) {
       this->txt_devinfo->publish_state(msg.substr(17, msg.size() - (17 + 4)));
       return;
    }
 
    // Devinfo example: ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n /
-   if (msg.substr(0, 16) == "ACK LEARN STATUS") {
+   if (msg.substr(0, 16) == "ACK LEARN STATUS" && this->txt_learn_status) {
       this->txt_learn_status->publish_state(msg.substr(17, msg.size() - (17 + 4)));
       return;
    }
@@ -291,14 +286,14 @@ void GatePro::set_param(int idx, int val) {
 
 void GatePro::publish_params() {
    if (!this->param_no_pub) {
-      if (this->speed_slider) this->speed_slider->publish_state(this->params[3]);
-      if (this->decel_dist_slider) this->decel_dist_slider->publish_state(this->params[4]);
-      if (this->decel_speed_slider) this->decel_speed_slider->publish_state(this->params[5]);
-      if (this->max_amp_slider) this->max_amp_slider->publish_state(this->params[6]);
-      if (this->auto_close_slider) this->auto_close_slider->publish_state(this->params[1]);
-      if (this->sw_permalock) this->sw_permalock->publish_state(this->params[15]);
-      if (this->sw_infra1) this->sw_infra1->publish_state(this->params[13]);
-      if (this->sw_infra2) this->sw_infra2->publish_state(this->params[14]);
+      // Numbers
+      for (auto swi : this->sliders_with_indices) {
+         swi.slider->publish_state(this->params[swi.idx]);
+      }
+      // Switches
+      for (auto swi : this->switches_with_indices) {
+         swi.switch_->publish_state(this->params[swi.idx]);
+      }
    }
 }
 
@@ -393,77 +388,38 @@ void GatePro::setup() {
       });
    }
    
-   if (speed_slider) {
-      this->speed_slider->add_on_state_callback([this](int value){
-         if (this->params[3] == value) {
-            return;
+   // Sliders
+   for (auto swi : this->sliders_with_indices) {
+      swi.slider->add_on_state_callback(
+         [this, swi](int value) {
+            if (this->params[swi.idx] == value) {
+               return;
+            }
+            this->set_param(swi.idx, value);
          }
-         this->set_param(3, value);
-      });
+      );
    }
-
-   if (decel_dist_slider) {
-      this->decel_dist_slider->add_on_state_callback([this](int value){
-         if (this->params[4] == value) {
-            return;
+   // Switches
+   for (auto swi : this->switches_with_indices) {
+      swi.switch_->add_on_state_callback(
+         [this, swi](bool state) {
+            if (this->params[swi.idx] == state) {
+               return;
+            }
+            this->set_param(swi.idx, state ? 1 : 0);
          }
-         this->set_param(4, value);
-      });
-   }
-
-   if (decel_speed_slider) {
-      this->decel_speed_slider->add_on_state_callback([this](int value){
-         if (this->params[5] == value) {
-            return;
+      );
+   }   
+   // Buttons
+   for (auto bwc : this->btns_with_cmds) {
+      ESP_LOGD(TAG, "setting up btn");
+      bwc.btn->add_on_press_callback(
+         [this, bwc]() {
+            ESP_LOGD(TAG, "press callback");
+            this->queue_gatepro_cmd(bwc.cmd);
          }
-         this->set_param(5, value);
-      });
-   }
-
-   if (max_amp_slider) {
-      this->max_amp_slider->add_on_state_callback([this](int value){
-         if (this->params[6] == value) {
-            return;
-         }
-         this->set_param(6, value);
-      });
-   }
-
-   if (auto_close_slider) {
-      this->auto_close_slider->add_on_state_callback([this](int value){
-         if (this->params[1] == value) {
-            return;
-         }
-         this->set_param(1, value);
-      });
-   }
-
-   if (sw_permalock) {
-      this->sw_permalock->add_on_state_callback([this](bool state){
-         if (this->params[15] == state) {
-            return;
-         }
-         this->set_param(15, state ? 1 : 0);
-      });
-   }
-
-   if (sw_infra1) {
-      this->sw_infra1->add_on_state_callback([this](bool state){
-         if (this->params[13] == state) {
-            return;
-         }
-         this->set_param(13, state ? 1 : 0);
-      });
-   }
-
-   if (sw_infra2) {
-      this->sw_infra2->add_on_state_callback([this](bool state){
-         if (this->params[14] == state) {
-            return;
-         }
-         this->set_param(14, state ? 1 : 0);
-      });
-   }
+      );
+   }   
 }
 
 void GatePro::update() {

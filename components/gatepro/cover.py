@@ -17,46 +17,78 @@ cover.COVER_OPERATIONS.update({
 })
 validate_cover_operation = cv.enum(cover.COVER_OPERATIONS, upper=True)
 
-
-CONF_LEARN = "set_learn"
-CONF_PARAMS_OD = "get_params"
+# buttons
+CONF_LEARN = "learn"
+CONF_PARAMS_OD = "params"
 CONF_REMOTE_LEARN = "remote_learn"
-CONF_SPEED_SLIDER = "set_speed"
-CONF_DECEL_DIST_SLIDER = "set_decel_dist"
-CONF_DECEL_SPEED_SLIDER = "set_decel_speed"
-CONF_MAX_AMP = "set_max_amp"
-CONF_AUTO_CLOSE = "set_auto_close"
-CONF_DEVINFO = "txt_devinfo"
-CONF_LEARN_STATUS = "txt_learn_status"
-CONF_PERMALOCK = "sw_permalock"
-CONF_INFRA1 = "sw_infra1"
-CONF_INFRA2 = "sw_infra2"
+CONF_PED_OPEN = "ped_open"
+# text sensors
+CONF_DEVINFO = "devinfo"
+CONF_LEARN_STATUS = "learn_status"
 
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
+        # BUTTON controllers
         cv.GenerateID(): cv.declare_id(GatePro),
         cv.Optional(CONF_LEARN): cv.use_id(button.Button),
         cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
         cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
-        cv.Optional(CONF_SPEED_SLIDER): cv.use_id(number.Number),
-        cv.Optional(CONF_DECEL_DIST_SLIDER): cv.use_id(number.Number),
-        cv.Optional(CONF_DECEL_SPEED_SLIDER): cv.use_id(number.Number),
-        cv.Optional(CONF_MAX_AMP): cv.use_id(number.Number),
-        cv.Optional(CONF_AUTO_CLOSE): cv.use_id(number.Number),
+        # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
-        cv.Optional(CONF_PERMALOCK): cv.use_id(switch.Switch),
-        cv.Optional(CONF_INFRA1): cv.use_id(switch.Switch),
-        cv.Optional(CONF_INFRA2): cv.use_id(switch.Switch),
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
+
+# SWITCH controllers mapping
+# name - parameter list index
+SWITCHES = {
+   "infra1": 13,
+   "infra2": 14,
+   "stop_terminal": 15
+}
+for k, v in SWITCHES.items():
+   CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
+      cv.Optional(k): cv.use_id(switch.Switch)
+   })
+
+# NUMBER controllers mapping
+# name - parameter list index
+NUMBERS = {
+   "auto_close": 1,
+   "operational_speed": 3,
+   "decel_dist": 4,
+   "decel_speed": 5,
+   "max_amp": 6,
+   "ped_dura": 7   
+}
+for k, v in NUMBERS.items():
+   CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
+      cv.Optional(k): cv.use_id(number.Number)
+   })
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    #var = await sensor.new_sensor(config)
     await cg.register_component(var, config)
     await cover.register_cover(var, config)
     await uart.register_uart_device(var, config)
+    # switches
+    for k, v in SWITCHES.items():
+      if k in config:
+         sw = await cg.get_variable(config[k])
+         cg.add(var.set_switch(v, sw))
+    # numbers
+    for k, v in NUMBERS.items():
+      if k in config:
+         num = await cg.get_variable(config[k])
+         cg.add(var.set_number(v, num))
 
+    # text sensors
+    if CONF_DEVINFO in config:
+      txt = await cg.get_variable(config[CONF_DEVINFO])
+      cg.add(var.set_txt_devinfo(txt))
+    if CONF_LEARN_STATUS in config:
+      txt = await cg.get_variable(config[CONF_LEARN_STATUS])
+      cg.add(var.set_txt_learn_status(txt))
+    # buttons
     if CONF_LEARN in config:
         btn = await cg.get_variable(config[CONF_LEARN])
         cg.add(var.set_btn_learn(btn))
@@ -66,33 +98,3 @@ async def to_code(config):
     if CONF_REMOTE_LEARN in config:
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
-    if CONF_SPEED_SLIDER in config: 
-      slider = await cg.get_variable(config[CONF_SPEED_SLIDER])
-      cg.add(var.set_speed_slider(slider))
-    if CONF_DECEL_DIST_SLIDER in config: 
-      slider = await cg.get_variable(config[CONF_DECEL_DIST_SLIDER])
-      cg.add(var.set_decel_dist_slider(slider))
-    if CONF_DECEL_SPEED_SLIDER in config: 
-      slider = await cg.get_variable(config[CONF_DECEL_SPEED_SLIDER])
-      cg.add(var.set_decel_speed_slider(slider))
-    if CONF_MAX_AMP in config: 
-      slider = await cg.get_variable(config[CONF_MAX_AMP])
-      cg.add(var.set_max_amp_slider(slider))
-    if CONF_AUTO_CLOSE in config: 
-      slider = await cg.get_variable(config[CONF_AUTO_CLOSE])
-      cg.add(var.set_auto_close_slider(slider))
-    if CONF_DEVINFO in config:
-      txt = await cg.get_variable(config[CONF_DEVINFO])
-      cg.add(var.set_txt_devinfo(txt))
-    if CONF_LEARN_STATUS in config:
-      txt = await cg.get_variable(config[CONF_LEARN_STATUS])
-      cg.add(var.set_txt_learn_status(txt))
-    if CONF_PERMALOCK in config:
-      sw = await cg.get_variable(config[CONF_PERMALOCK])
-      cg.add(var.set_sw_permalock(sw))
-    if CONF_INFRA1 in config:
-      sw = await cg.get_variable(config[CONF_INFRA1])
-      cg.add(var.set_sw_infra1(sw))
-    if CONF_INFRA2 in config:
-      sw = await cg.get_variable(config[CONF_INFRA2])
-      cg.add(var.set_sw_infra2(sw))

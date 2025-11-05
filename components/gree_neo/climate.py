@@ -45,7 +45,11 @@ CONFIG_SCHEMA = cv.All(
         }
     )
     # wifi module polls every 300ms but do we need it so often? set it to 10s
+<<<<<<< HEAD
     .extend(cv.polling_component_schema("10s"))
+=======
+    .extend(cv.polling_component_schema("1s"))
+>>>>>>> origin/dev
     .extend(uart.UART_DEVICE_SCHEMA),
 )
 
