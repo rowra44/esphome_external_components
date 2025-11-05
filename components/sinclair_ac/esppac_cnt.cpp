@@ -298,13 +298,6 @@ void SinclairACCNT::send_packet()
         fanTurbo  = false;
         packet[protocol::REPORT_FAN_SPD2_BYTE] |= 1;
     }
-/*    else if (this->custom_fan_mode == fan_modes::FAN_QUIET)
-    {
-        fanSpeed1 = 1;
-        fanSpeed2 = 1;
-        fanQuiet  = true;
-        fanTurbo  = false;
-    } */
     else if (this->fan_mode == climate::CLIMATE_FAN_MEDIUM)
     {
         fanSpeed1 = 3;
@@ -321,6 +314,13 @@ void SinclairACCNT::send_packet()
         fanTurbo  = false;
         packet[protocol::REPORT_FAN_SPD2_BYTE] |= 3;
     }
+    else if (this->fan_mode == climate::CLIMATE_FAN_QUIET)
+    {
+        fanSpeed1 = 1;
+        fanSpeed2 = 1;
+        fanQuiet  = true;
+        fanTurbo  = false;
+    } 
     /*else if (this->fan_mode == climate::FAN_HIGH)  // TODO TURBO
     {
         fanSpeed1 = 5;
@@ -339,6 +339,7 @@ void SinclairACCNT::send_packet()
     // packet[protocol::REPORT_FAN_SPD1_BYTE] |= (fanSpeed1 << protocol::REPORT_FAN_SPD1_POS);
     // packet[protocol::REPORT_FAN_SPD2_BYTE] |= (fanSpeed2 << protocol::REPORT_FAN_SPD2_POS);
     
+    // boost preset is pretty much a special fan mode in this case
     fanTurbo = this->preset == climate::CLIMATE_PRESET_BOOST;   
     if (fanTurbo)
     {
@@ -521,9 +522,12 @@ void SinclairACCNT::send_packet()
     }
 
     /* SLEEP --------------------------------------------------------------------------- */
-    if (this->sleep_state_)
+    /*if (this->sleep_state_)
     {
         packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
+    }*/
+    if (this->preset == climate::CLIMATE_PRESET_SLEEP) {
+      packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
     }
 
     /* XFAN --------------------------------------------------------------------------- */
@@ -825,7 +829,10 @@ climate::ClimateFanMode SinclairACCNT::determine_fan_mode()
     /* fan setting has quite complex representation in the packet, brace for it */
    // uint8_t fanSpeed1 = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE]  & protocol::REPORT_FAN_SPD1_MASK) >> protocol::REPORT_FAN_SPD1_POS;
     //uint8_t fanSpeed2 = (this->serialProcess_.data[protocol::REPORT_FAN_SPD2_BYTE]  & protocol::REPORT_FAN_SPD2_MASK) >> protocol::REPORT_FAN_SPD2_POS;
-    //bool    fanQuiet  = (this->serialProcess_.data[protocol::REPORT_FAN_QUIET_BYTE] & protocol::REPORT_FAN_QUIET_MASK) != 0;
+    bool    fanQuiet  = (this->serialProcess_.data[protocol::REPORT_FAN_QUIET_BYTE] & protocol::REPORT_FAN_QUIET_MASK) != 0;
+    if (fanQuiet) {
+      return climate::CLIMATE_FAN_QUIET;
+    }
     
     //bool    fanTurbo  = (this->serialProcess_.data[protocol::REPORT_FAN_TURBO_BYTE] & protocol::REPORT_FAN_TURBO_MASK) != 0;
     uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD2_BYTE] & protocol::REPORT_FAN_MODE_MASK);
