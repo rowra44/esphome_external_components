@@ -292,32 +292,22 @@ void SinclairACCNT::send_packet()
     {
         fanSpeed1 = 1;
         fanSpeed2 = 1;
-        //packet[protocol::REPORT_FAN_SPD2_BYTE] |= 1;
     }
     else if (this->fan_mode == climate::CLIMATE_FAN_MEDIUM)
     {
         fanSpeed1 = 3;
         fanSpeed2 = 2;
-        //packet[protocol::REPORT_FAN_SPD2_BYTE] |= 2;
     }
     else if (this->fan_mode == climate::CLIMATE_FAN_HIGH)
     {
         fanSpeed1 = 5;
         fanSpeed2 = 3;
-        //packet[protocol::REPORT_FAN_SPD2_BYTE] |= 3;
     }
-    // Gree's boost is pretty much a special fan setting
-    else if (this->preset == climate::CLIMATE_PRESET_BOOST)
-    {
-        fanSpeed1 = 5;
-        fanSpeed2 = 3;
-        packet[protocol::REPORT_FAN_TURBO_BYTE] |= protocol::REPORT_FAN_TURBO_MASK;  
-    }
-    // .. as is quiet mode
     else if (this->fan_mode == climate::CLIMATE_FAN_QUIET)
     {
         fanSpeed1 = 1;
         fanSpeed2 = 1;
+        // quiet mode needs another special byte
         packet[protocol::REPORT_FAN_QUIET_BYTE] |= protocol::REPORT_FAN_QUIET_MASK;
     }
     else
@@ -329,6 +319,19 @@ void SinclairACCNT::send_packet()
     packet[protocol::REPORT_FAN_SPD1_BYTE] |= (fanSpeed1 << protocol::REPORT_FAN_SPD1_POS);
     packet[protocol::REPORT_FAN_SPD2_BYTE] |= (fanSpeed2 << protocol::REPORT_FAN_SPD2_POS);
 
+   /* PRESET ------------------------------------------------------------------------------------ */
+   /* In HA, boost and sleep are presets, however in Gree's domain, they're merely a fan profile
+      and a boolean switch to flip over.
+   */
+    if (this->preset == climate::CLIMATE_PRESET_BOOST)
+    {
+        fanSpeed1 = 5;
+        fanSpeed2 = 3;
+        packet[protocol::REPORT_FAN_TURBO_BYTE] |= protocol::REPORT_FAN_TURBO_MASK;  
+    }
+    if (this->preset == climate::CLIMATE_PRESET_SLEEP) {
+        packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
+    }
     
     /* VERTICAL SWING --------------------------------------------------------------------------- */
     uint8_t mode_vertical_swing = protocol::REPORT_VSWING_OFF;
@@ -468,9 +471,7 @@ void SinclairACCNT::send_packet()
         {
             display_mode = protocol::REPORT_DISP_MODE_AUTO;
         }
-    }
-    else
-    {
+    } else {
         display_mode = protocol::REPORT_DISP_MODE_AUTO;
         this->display_power_internal_ = true;
     }
@@ -501,15 +502,6 @@ void SinclairACCNT::send_packet()
         packet[protocol::REPORT_BEEPER_BYTE] |= protocol::REPORT_BEEPER_MASK;
     }
 
-    /* SLEEP --------------------------------------------------------------------------- */
-    /*if (this->sleep_state_)
-    {
-        packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
-    }*/
-    if (this->preset == climate::CLIMATE_PRESET_SLEEP) {
-      packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
-    }
-
     /* XFAN --------------------------------------------------------------------------- */
     if (this->xfan_state_)
     {
@@ -522,9 +514,8 @@ void SinclairACCNT::send_packet()
         packet[protocol::REPORT_SAVE_BYTE] |= protocol::REPORT_SAVE_MASK;
     }
 
+
     /* Do the command, length */
-
-
     for (int i = 0; i < 20; i++)
          lastpacket[i] = packet[i];
     
@@ -550,7 +541,6 @@ void SinclairACCNT::send_packet()
     this->wait_response_ = true;
     write_array(packet);                 /* Sent the packet by UART */
     log_packet(packet, true);            /* Log uart for debug purposes */
-   
 
     
     /* update setting state-machine */
@@ -680,16 +670,18 @@ bool SinclairACCNT::processUnitReport()
     bool hasChanged = false;
 
     climate::ClimateMode newMode = determine_mode();
-    if (this->mode != newMode) hasChanged = true;
+    if (this->mode != newMode)
+      hasChanged = true;
     this->mode = newMode;
 
-    //std::string newFanMode = determine_fan_mode();
     climate::ClimateFanMode newFanMode = determine_fan_mode();
-    if (this->fan_mode != newFanMode) hasChanged = true;
+    if (this->fan_mode != newFanMode)
+      hasChanged = true;
     this->fan_mode = newFanMode;
 
     climate::ClimatePreset newPreset = determine_preset();
-    if (this->preset != newPreset) hasChanged = true;
+    if (this->preset != newPreset)
+      hasChanged = true;
     this->preset = newPreset;
     
     //float newTargetTemperature = (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
