@@ -21,7 +21,7 @@ void SinclairACCNT::setup()
     Temrec0[7] = 22.7777777778;
     Temrec0[8] = 23.8888888889;
     Temrec0[9] = 25;
-    Temrec0[10] =25.5555555556;
+    Temrec0[10] = 25.5555555556;
     Temrec0[11] = 26.6666666667;
     Temrec0[12] = 27.7777777778;
     Temrec0[13] = 28.8888888889;
@@ -97,18 +97,6 @@ void SinclairACCNT::loop()
 }
 
 /*
- * Force UI Re-render 
- */
-void SinclairACCNT::force_ui_rerender() {
-   climate::ClimateMode tmp = this->mode;
-   this->mode = climate::CLIMATE_MODE_HEAT;
-   this->publish_state();
-   this->mode = tmp;
-   this->publish_state();
-}
-
-
-/*
  * ESPHome control request
  */
 
@@ -150,18 +138,10 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
 
     if (call.get_preset().has_value())
     {
-        // boost is only available in COOL or HEAT
-        if (this->mode == climate::CLIMATE_MODE_COOL ||
-            this->mode == climate::CLIMATE_MODE_HEAT) {
-            ESP_LOGV(TAG, "Requested preset change");
-            reqmodechange = true;
-            this->update_ = ACUpdate::UpdateStart;
-            this->preset = call.get_preset().value();
-        // otherwise a ui re-render has to be forced by momentarily faking for e.g. changing temp., because
-        // preset is not a trait that requires re-render..
-        } else {
-            force_ui_rerender();
-        }
+        ESP_LOGV(TAG, "Requested preset change");
+        reqmodechange = true;
+        this->update_ = ACUpdate::UpdateStart;
+        this->preset = call.get_preset().value();
     }
 
     if (call.get_swing_mode().has_value())

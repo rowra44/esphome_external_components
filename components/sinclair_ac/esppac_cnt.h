@@ -188,7 +188,6 @@ class SinclairACCNT : public SinclairAC {
 
         bool verify_packet();
         void handle_packet();
-        void force_ui_rerender();
 
         climate::ClimateMode determine_mode();
         climate::ClimateFanMode determine_fan_mode();

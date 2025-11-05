@@ -37,7 +37,8 @@ climate::ClimateTraits SinclairAC::traits()
       climate::CLIMATE_FAN_AUTO,
       climate::CLIMATE_FAN_LOW,
       climate::CLIMATE_FAN_MEDIUM,
-      climate::CLIMATE_FAN_HIGH
+      climate::CLIMATE_FAN_HIGH,
+      climate::CLIMATE_FAN_QUIET
   });
 
     traits.set_supported_swing_modes({climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_BOTH,
