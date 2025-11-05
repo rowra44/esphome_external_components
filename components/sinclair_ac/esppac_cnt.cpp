@@ -100,9 +100,10 @@ void SinclairACCNT::loop()
  * Force UI Re-render 
  */
 void SinclairACCNT::force_ui_rerender() {
-   this->target_temperature++;
+   climate::ClimateMode tmp = this->mode;
+   this->mode = climate::CLIMATE_MODE_HEAT;
    this->publish_state();
-   this->target_temperature--;
+   this->mode = tmp;
    this->publish_state();
 }
 
