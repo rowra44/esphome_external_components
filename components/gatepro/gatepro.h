@@ -57,16 +57,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void set_switch(u_int param_idx, switch_::Switch *switch_) {
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
-      // Buttons
-      struct BtnWithCmd{
-         GateProCmd cmd;
-         button::Button *btn;
-         BtnWithCmd(GateProCmd cmd, button::Button *btn) : cmd(cmd), btn(btn) {};
-      };
-      std::vector<BtnWithCmd> btns_with_cmds;
-      void set_btn(std::string cmd, button::Button *btn) {
-         this->btns_with_cmds.push_back(BtnWithCmd(find_cmd_by_string(cmd), btn));
-      }
 
       void setup() override;
       void update() override;

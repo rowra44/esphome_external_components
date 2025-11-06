@@ -410,16 +410,6 @@ void GatePro::setup() {
          }
       );
    }   
-   // Buttons
-   for (auto bwc : this->btns_with_cmds) {
-      ESP_LOGD(TAG, "setting up btn");
-      bwc.btn->add_on_press_callback(
-         [this, bwc]() {
-            ESP_LOGD(TAG, "press callback");
-            this->queue_gatepro_cmd(bwc.cmd);
-         }
-      );
-   }   
 }
 
 void GatePro::update() {
