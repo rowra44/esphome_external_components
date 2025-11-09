@@ -243,19 +243,19 @@ void GatePro::read_uart() {
    this->msg_buff += this->convert(bytes, available);
 
    // find delimiter, thus a whole msg, send it to processor, then remove from buffer and keep remainder (if any)
-   size_t pos = this->msg_buff.find(this->delimiter);
+   size_t pos = this->msg_buff.find(DELIMITER);
    if (pos != std::string::npos) {
-      std::string sub = this->msg_buff.substr(0, pos + this->delimiter_length);
+      std::string sub = this->msg_buff.substr(0, pos + DELIMITER_LENGTH);
       this->rx_queue.push(sub);
       ESP_LOGD(TAG, "UART RX[%d]: %s", this->rx_queue.size(), sub.c_str());
-      this->msg_buff = this->msg_buff.substr(pos + this->delimiter_length); //, this->msg_buff.length() - pos);
+      this->msg_buff = this->msg_buff.substr(pos + DELIMITER_LENGTH); //, this->msg_buff.length() - pos);
    }
 }
 
 void GatePro::write_uart() {
    if (this->tx_queue.size()) {
       std::string tmp = this->tx_queue.front();
-      tmp += this->tx_delimiter;
+      tmp += TX_DELIMITER;
       const char* out = tmp.c_str();
       this->write_str(out);
       ESP_LOGD(TAG, "UART TX[%d]: %s", this->tx_queue.size(), out);
@@ -267,28 +267,9 @@ std::string GatePro::convert(uint8_t* bytes, size_t len) {
 	std::string res;
 	char buf[5];
 	for (size_t i = 0; i < len; i++) {
-		if (bytes[i] == 7) {
-			res += "\\a";
-		} else if (bytes[i] == 8) {
-			res += "\\b";
-		} else if (bytes[i] == 9) {
-			res += "\\t";
-		} else if (bytes[i] == 10) {
-			res += "\\n";
-		} else if (bytes[i] == 11) {
-			res += "\\v";
-		} else if (bytes[i] == 12) {
-			res += "\\f";
-		} else if (bytes[i] == 13) {
-			res += "\\r";
-		} else if (bytes[i] == 27) {
-			res += "\\e";
-		} else if (bytes[i] == 34) {
-			res += "\\\"";
-		} else if (bytes[i] == 39) {
-			res += "\\'";
-		} else if (bytes[i] == 92) {
-			res += "\\\\";
+      auto cm = ConversionMap.find(bytes[i]);
+      if (cm != ConversionMap.end()) {
+         res += cm->second;
 		} else if (bytes[i] < 32 || bytes[i] > 127) {
 			sprintf(buf, "\\x%02X", bytes[i]);
 			res += buf;

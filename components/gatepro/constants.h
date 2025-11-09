@@ -62,7 +62,7 @@ struct GateProMsgConstant {
    std::string match;
 };
 
-const std::map<GateProMsgType, GateProMsgConstant> GateProMsgTypeMapping = {
+const std::map<GateProMsgType, const GateProMsgConstant> GateProMsgTypeMapping = {
    {GATEPRO_MSG_ACK_RS, {0, 6, "ACK RS"}},
    {GATEPRO_MSG_ACK_RP, {0, 6, "ACK RP"}},
    {GATEPRO_MSG_ACK_RP, {0, 6, "ACK WP"}},
@@ -71,7 +71,7 @@ const std::map<GateProMsgType, GateProMsgConstant> GateProMsgTypeMapping = {
    {GATEPRO_MSG_ACK_LEARN_STATUS, {0, 16, "ACK LEARN STATUS"}},
 };
 
-const std::map<GateProMsgType, GateProMsgConstant> MotorEvents = {
+const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
    {MOTOR_EVENT_OPENING, {11, 7, "Opening"}},
    {MOTOR_EVENT_OPENED, {11, 6, "Opened"}},
    {MOTOR_EVENT_CLOSING, {11, 7, "Closing"}},
@@ -80,8 +80,26 @@ const std::map<GateProMsgType, GateProMsgConstant> MotorEvents = {
    {MOTOR_EVENT_STOPPED, {11, 7, "Stopped"}},
 };
 
+const std::map<int, const std::string> ConversionMap {
+   {7, "\\a"},
+   {8, "\\b"},
+   {9, "\\t"},
+   {10, "\\n"},
+   {11, "\\v"},
+   {12, "\\f"},
+   {13, "\\r"},
+   {27, "\\e"},
+   {34, "\\\""},
+   {39, "\\'"},
+   {92, "\\\\"},
+};
+
 /* Misc constants
 */
+const std::string DELIMITER = "\\r\\n";
+const uint8_t DELIMITER_LENGTH = DELIMITER.length();
+const std::string TX_DELIMITER = "\r\n";
+
 // black magic shit. Somehow the percentage of position is offset by this number
 const int KNOWN_PERCENTAGE_OFFSET = 128;
 // maximum acceptable difference of target pos / current pos in %

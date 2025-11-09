@@ -103,9 +103,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       int after_tick = after_tick_max;
 
       // UART parser constants
-      const std::string delimiter = "\\r\\n";
-      const uint8_t delimiter_length = delimiter.length();
-      const std::string tx_delimiter = "\r\n";
       std::string msg_buff;
 
       float target_position_;
