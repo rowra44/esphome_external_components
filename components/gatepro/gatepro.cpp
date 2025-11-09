@@ -48,9 +48,14 @@ bool GatePro::read_msg() {
    return true;
 }
 
-/*void GatePro::identify_msg_type() {
-
-}*/
+GateProMsgType GatePro::identify_current_msg_type() {
+   for (const auto& [key, value] : GateProMsgTypeMapping) {
+      if (this->current_msg.substr(value.substr_from, value.substr_to) == value.match) {
+         return key;
+      }
+   }
+   return GATEPRO_MSG_UNKNOWN;
+}
 
 ///
 void GatePro::process() {
@@ -58,27 +63,32 @@ void GatePro::process() {
    if (!this->read_msg()) {
       return;
    }
+   GateProMsgType current_msg_type = this->identify_current_msg_type();
+   std::string msg = this->current_msg; ////// REMOVE
+   switch (current_msg_type) {
+      case GATEPRO_MSG_UNKNOWN:
+         ESP_LOGD(TAG, "Unkown message type");
+         return;
+      case GATEPRO_MSG_RS:
+         // status only matters when in motion (operation not finished) 
+         if (this->operation_finished) {
+            return;
+         }
+         msg = msg.substr(16, 2);
+         int percentage = stoi(msg, 0, 16);
+         // percentage correction with known offset, if necessary
+         if (percentage > 100) {
+            percentage -= this->known_percentage_offset;
+         }
+         this->position = (float)percentage / 100;
+         return;
+   }
 
    //ESP_LOGD(TAG, "UART RX: %s", (const char*)msg.c_str());
    // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
    //                          ^- percentage in hex
    //if (msg.substr(0, 6) == "ACK RS") {
-   std::string msg = this->current_msg;
-   GateProMsgConstant ack_rs = GateProMsgTypeMapping.at(GATEPRO_MSG_RS);
-   if (this->current_msg.substr(ack_rs.substr_from, ack_rs.substr_to) == ack_rs.match) {
-      // status only matters when in motion (operation not finished) 
-      if (this->operation_finished) {
-         return;
-      }
-      msg = msg.substr(16, 2);
-      int percentage = stoi(msg, 0, 16);
-      // percentage correction with known offset, if necessary
-      if (percentage > 100) {
-         percentage -= this->known_percentage_offset;
-      }
-      this->position = (float)percentage / 100;
-      return;
-   }
+   
 
    // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
    if (msg.substr(0, 6) == "ACK RP") {
