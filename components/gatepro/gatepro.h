@@ -56,6 +56,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void stop_at_target_position();
       void correction_after_operation();
       void process();
+      void initial_movement();
 
       // param logic
       std::vector<int> params;
