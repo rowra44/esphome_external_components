@@ -68,7 +68,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       // helpers
       std::string current_msg;
       bool read_msg();
-      GateProMsgType identify_current_msg_type(std::map<GateProMsgType, GateProMsgConstant>);
+      GateProMsgType identify_current_msg_type(std::map<GateProMsgType, const GateProMsgConstant>);
 
       // param logic
       std::vector<int> params;

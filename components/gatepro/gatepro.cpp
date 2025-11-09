@@ -49,7 +49,7 @@ bool GatePro::read_msg() {
 }
 
 GateProMsgType GatePro::identify_current_msg_type(
-   std::map<GateProMsgType, GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
+   std::map<GateProMsgType, const GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
    for (const auto& [key, value] : possibilities) {
       if (this->current_msg.substr(value.pos, value.len) == value.match) {
          return key;
