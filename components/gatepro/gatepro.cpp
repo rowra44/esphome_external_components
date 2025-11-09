@@ -157,10 +157,6 @@ void GatePro::process() {
          this->parse_params(this->current_msg);
          return;
 
-      case GATEPRO_MSG_ACK_WP:
-         ESP_LOGD(TAG, "Write params acknowledged");
-         return;
-
       case GATEPRO_MSG_MOTOR_EVENT: {
          GateProMsgType motor_event = this->identify_current_msg_type(MotorEvents);
          switch(motor_event) {
