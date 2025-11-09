@@ -11,33 +11,6 @@ static const char* TAG = "gatepro";
 ////////////////////////////////////////////
 // Helper / misc functions
 ////////////////////////////////////////////
-void GatePro::queue_gatepro_cmd(GateProCmd cmd) {
-   ESP_LOGD(TAG, "Queuing cmd: %s", GateProCmdMapping.at(cmd));
-   this->tx_queue.push(GateProCmdMapping.at(cmd));
-}
-
-void GatePro::publish() {
-   // if position is unchanged
-   if (this->position_ == this->position) {
-      // ..and the after ticks are up, then don't update
-      if (this->after_tick == 0) {
-         return;
-      // ..but there are some after tick counts left, then update and take away 1 after tick
-      } else {
-         this->after_tick--;
-      }
-   // otherwise update and reset after tick remaning count
-   } else {
-      this->position_ = this->position;
-      this->after_tick = this->after_tick_max;
-   }
-
-   this->publish_state();
-}
-
-////////////////////////////////////////////
-// GatePro logic functions
-////////////////////////////////////////////
 bool GatePro::read_msg() {
    this->read_uart();
    if (!this->rx_queue.size()) {
@@ -58,106 +31,110 @@ GateProMsgType GatePro::identify_current_msg_type(
    return GATEPRO_MSG_UNKNOWN;
 }
 
-///
-void GatePro::process() {
-   // try reading a message from uart
-   if (!this->read_msg()) {
-      return;
-   }
-   GateProMsgType current_msg_type = this->identify_current_msg_type();
-   std::string msg = this->current_msg; ////// REMOVE
-   switch (current_msg_type) {
-      case GATEPRO_MSG_UNKNOWN:
-         ESP_LOGD(TAG, "Unkown message type");
-         return;
-
-      // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
-      //                          ^- percentage in hex
-      case GATEPRO_MSG_ACK_RS: {
-         // status only matters when in motion (operation not finished) 
-         if (this->operation_finished) {
-            return;
-         }
-         const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos, STATUS_PERCENTAGE.len);
-         int percentage = stoi(percentage_string, 0, 16);
-         // percentage correction with known offset, if necessary
-         if (percentage > 100) {
-            percentage -= KNOWN_PERCENTAGE_OFFSET;
-         }
-         this->position = (float)percentage / 100;
-         return;
-      }
-
-      // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-      case GATEPRO_MSG_ACK_RP:
-         this->parse_params(this->current_msg);
-         return;
-
-      // ACK WP example: ACK WP,1\r\n
-      case GATEPRO_MSG_ACK_WP:
-         ESP_LOGD(TAG, "Write params acknowledged");
-         return;
-
-      // Event message from the motor
-      // example: $V1PKF0,17,Closed;src=0001\r\n
-      case GATEPRO_MSG_MOTOR_EVENT: {
-         GateProMsgType motor_event = this->identify_current_msg_type(MotorEvents);
-         switch(motor_event) {
-            case GATEPRO_MSG_UNKNOWN:
-               ESP_LOGD(TAG, "Unkown motor event");
-               return;
-
-            case MOTOR_EVENT_OPENING:
-               this->operation_finished = false;
-               this->current_operation = cover::COVER_OPERATION_OPENING;
-               this->last_operation_ = cover::COVER_OPERATION_OPENING;
-               return;
-            
-            case MOTOR_EVENT_OPENED:
-               this->operation_finished = true;
-               this->target_position_ = 0.0f;
-               this->current_operation = cover::COVER_OPERATION_IDLE;
-               return;
-            
-            case MOTOR_EVENT_CLOSING:
-               this->operation_finished = false;
-               this->current_operation = cover::COVER_OPERATION_CLOSING;
-               this->last_operation_ = cover::COVER_OPERATION_CLOSING;
-               return;
-
-            case MOTOR_EVENT_CLOSED:
-               this->operation_finished = true;
-               this->target_position_ = 0.0f;
-               this->current_operation = cover::COVER_OPERATION_IDLE;
-               return;
-               
-            case MOTOR_EVENT_STOPPED:
-               this->target_position_ = 0.0f;
-               this->current_operation = cover::COVER_OPERATION_IDLE;
-               return;            
-         }
-         return; // should never reach here.. but just to be safe..
-      }
-
-      // Devinfo example: ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
-      case GATEPRO_MSG_ACK_READ_DEVINFO:
-         if (!this->txt_devinfo)
-            return;
-         this->txt_devinfo->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
-         return;
-
-      // Devinfo example: ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n /
-      case GATEPRO_MSG_ACK_LEARN_STATUS:
-         if (!this->txt_learn_status)
-            return;
-         this->txt_learn_status->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
-         return;
-   } 
+std::string GatePro::convert(uint8_t* bytes, size_t len) {
+	std::string res;
+	char buf[5];
+	for (size_t i = 0; i < len; i++) {
+      auto cm = ConversionMap.find(bytes[i]);
+      if (cm != ConversionMap.end()) {
+         res += cm->second;
+		} else if (bytes[i] < 32 || bytes[i] > 127) {
+			sprintf(buf, "\\x%02X", bytes[i]);
+			res += buf;
+		} else {
+			res += bytes[i];
+		}
+	}
+	//ESP_LOGD(TAG, "%s", res.c_str());
+	return res;
 }
 
 ////////////////////////////////////////////
-// Cover component logic functions
+// Parameters
 ////////////////////////////////////////////
+void GatePro::parse_params(std::string msg) {
+   this->params.clear();
+   // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
+   //                   ^-9  
+   msg = msg.substr(PARAMS.pos, PARAMS.len);
+   size_t start = 0;
+   size_t end;
+
+   // efficiently split on ','
+   while((end = msg.find(',', start)) != std::string::npos) {
+      this->params.push_back(stoi(msg.substr(start, end - start)));
+      start = end + 1;
+   }
+   this->params.push_back(stoi(msg.substr(start)));
+
+   ESP_LOGD(TAG, "Parsed current params:", this->params.size());
+   for (size_t i = 0; i < this->params.size(); ++i) {
+      ESP_LOGD(TAG, "  [%zu] = %d", i, this->params[i]);
+   }
+
+   this->publish_params();
+
+   // write new params if any task is up
+   while (!this->paramTaskQueue.empty()) {
+      auto task = this->paramTaskQueue.front();
+      this->paramTaskQueue.pop();
+      task();
+      this->param_no_pub = false;
+   }
+}
+
+void GatePro::publish_params() {
+   if (!this->param_no_pub) {
+      // Numbers
+      for (auto swi : this->sliders_with_indices) {
+         swi.slider->publish_state(this->params[swi.idx]);
+      }
+      // Switches
+      for (auto swi : this->switches_with_indices) {
+         swi.switch_->publish_state(this->params[swi.idx]);
+      }
+   }
+}
+
+void GatePro::write_params() {
+   std::string msg = GATEPRO_CMD_WRITE_PARAMS;
+   for (size_t i = 0; i < this->params.size(); i++) {
+      msg += to_string(this->params[i]);
+      if (i != this->params.size() -1) {
+         msg += ",";
+      }
+   }
+   //msg += ";src=P00287D7";
+   std::strcpy(this->params_cmd, msg.c_str());
+   ESP_LOGD(TAG, "BUILT PARAMS: %s", this->params_cmd);
+   this->tx_queue.push(this->params_cmd);
+
+   // read params again just to update frontend and make sure :)
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+}
+
+void GatePro::set_param(int idx, int val) {
+   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
+   this->param_no_pub = true;
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+
+   this->paramTaskQueue.push(
+      [this, idx, val](){
+         ESP_LOGD(TAG, "Initiating set speed");
+         this->params[idx] = val;
+         this->write_params();
+      });
+}
+
+
+////////////////////////////////////////////
+// Device logic
+////////////////////////////////////////////
+void GatePro::queue_gatepro_cmd(GateProCmd cmd) {
+   ESP_LOGD(TAG, "Queuing cmd: %s", GateProCmdMapping.at(cmd));
+   this->tx_queue.push(GateProCmdMapping.at(cmd));
+}
+
 void GatePro::control(const cover::CoverCall &call) {
    if (call.get_stop()) {
       this->start_direction_(cover::COVER_OPERATION_IDLE);
@@ -198,6 +175,17 @@ void GatePro::start_direction_(cover::CoverOperation dir) {
    }
 }
 
+void GatePro::stop_at_target_position() {
+   if (this->target_position_ &&
+         this->target_position_ != cover::COVER_OPEN &&
+         this->target_position_ != cover::COVER_CLOSED) {
+      const float diff = abs(this->position - this->target_position_);
+      if (diff < ACCEPTABLE_DIFF) {
+         this->make_call().set_command_stop().perform();
+      }
+   }
+}
+
 void GatePro::correction_after_operation() {
    if (this->operation_finished) {
       if (this->current_operation == cover::COVER_OPERATION_IDLE &&
@@ -215,19 +203,118 @@ void GatePro::correction_after_operation() {
    }
 }
 
-void GatePro::stop_at_target_position() {
-   if (this->target_position_ &&
-         this->target_position_ != cover::COVER_OPEN &&
-         this->target_position_ != cover::COVER_CLOSED) {
-      const float diff = abs(this->position - this->target_position_);
-      if (diff < ACCEPTABLE_DIFF) {
-         this->make_call().set_command_stop().perform();
-      }
+void GatePro::process() {
+   // try reading a message from uart
+   if (!this->read_msg()) {
+      return;
    }
+   GateProMsgType current_msg_type = this->identify_current_msg_type();
+   std::string msg = this->current_msg; ////// REMOVE
+   switch (current_msg_type) {
+      case GATEPRO_MSG_UNKNOWN:
+         ESP_LOGD(TAG, "Unkown message type");
+         return;
+
+      case GATEPRO_MSG_ACK_RS: {
+         // status only matters when in motion (operation not finished) 
+         if (this->operation_finished) {
+            return;
+         }
+         const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos, STATUS_PERCENTAGE.len);
+         int percentage = stoi(percentage_string, 0, 16);
+         // percentage correction with known offset, if necessary
+         if (percentage > 100) {
+            percentage -= KNOWN_PERCENTAGE_OFFSET;
+         }
+         this->position = (float)percentage / 100;
+         return;
+      }
+
+      case GATEPRO_MSG_ACK_RP:
+         this->parse_params(this->current_msg);
+         return;
+
+      case GATEPRO_MSG_ACK_WP:
+         ESP_LOGD(TAG, "Write params acknowledged");
+         return;
+
+      case GATEPRO_MSG_MOTOR_EVENT: {
+         GateProMsgType motor_event = this->identify_current_msg_type(MotorEvents);
+         switch(motor_event) {
+            case GATEPRO_MSG_UNKNOWN:
+               ESP_LOGD(TAG, "Unkown motor event");
+               return;
+
+            case MOTOR_EVENT_OPENING:
+               this->operation_finished = false;
+               this->current_operation = cover::COVER_OPERATION_OPENING;
+               this->last_operation_ = cover::COVER_OPERATION_OPENING;
+               return;
+            
+            case MOTOR_EVENT_OPENED:
+               this->operation_finished = true;
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;
+            
+            case MOTOR_EVENT_CLOSING:
+               this->operation_finished = false;
+               this->current_operation = cover::COVER_OPERATION_CLOSING;
+               this->last_operation_ = cover::COVER_OPERATION_CLOSING;
+               return;
+
+            case MOTOR_EVENT_CLOSED:
+               this->operation_finished = true;
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;
+               
+            case MOTOR_EVENT_STOPPED:
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;            
+         }
+         return; // should never reach here.. but just to be safe..
+      }
+
+      case GATEPRO_MSG_ACK_READ_DEVINFO:
+         if (!this->txt_devinfo)
+            return;
+         this->txt_devinfo->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
+         return;
+
+      case GATEPRO_MSG_ACK_LEARN_STATUS:
+         if (!this->txt_learn_status)
+            return;
+         this->txt_learn_status->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
+         return;
+   } 
 }
 
 ////////////////////////////////////////////
-// UART operations
+// Sensor logic
+////////////////////////////////////////////
+void GatePro::publish() {
+   // if position is unchanged
+   if (this->position_ == this->position) {
+      // ..and the after ticks are up, then don't update
+      if (this->after_tick == 0) {
+         return;
+      // ..but there are some after tick counts left, then update and take away 1 after tick
+      } else {
+         this->after_tick--;
+      }
+   // otherwise update and reset after tick remaning count
+   } else {
+      this->position_ = this->position;
+      this->after_tick = AFTER_TICK_MAX;
+   }
+
+   this->publish_state();
+}
+
+////////////////////////////////////////////
+// UART
 ////////////////////////////////////////////
 void GatePro::read_uart() {
    // check if anything on UART buffer
@@ -261,102 +348,6 @@ void GatePro::write_uart() {
       ESP_LOGD(TAG, "UART TX[%d]: %s", this->tx_queue.size(), out);
       this->tx_queue.pop();
    }
-}
-
-std::string GatePro::convert(uint8_t* bytes, size_t len) {
-	std::string res;
-	char buf[5];
-	for (size_t i = 0; i < len; i++) {
-      auto cm = ConversionMap.find(bytes[i]);
-      if (cm != ConversionMap.end()) {
-         res += cm->second;
-		} else if (bytes[i] < 32 || bytes[i] > 127) {
-			sprintf(buf, "\\x%02X", bytes[i]);
-			res += buf;
-		} else {
-			res += bytes[i];
-		}
-	}
-	//ESP_LOGD(TAG, "%s", res.c_str());
-	return res;
-}
-
-
-////////////////////////////////////////////
-// Paramater functions
-////////////////////////////////////////////
-void GatePro::set_param(int idx, int val) {
-   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
-   this->param_no_pub = true;
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-
-   this->paramTaskQueue.push(
-      [this, idx, val](){
-         ESP_LOGD(TAG, "Initiating set speed");
-         this->params[idx] = val;
-         this->write_params();
-      });
-}
-
-void GatePro::publish_params() {
-   if (!this->param_no_pub) {
-      // Numbers
-      for (auto swi : this->sliders_with_indices) {
-         swi.slider->publish_state(this->params[swi.idx]);
-      }
-      // Switches
-      for (auto swi : this->switches_with_indices) {
-         swi.switch_->publish_state(this->params[swi.idx]);
-      }
-   }
-}
-
-void GatePro::parse_params(std::string msg) {
-   this->params.clear();
-   // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-   //                   ^-9  
-   msg = msg.substr(PARAMS.pos, PARAMS.len);
-   size_t start = 0;
-   size_t end;
-
-   // efficiently split on ','
-   while((end = msg.find(',', start)) != std::string::npos) {
-      this->params.push_back(stoi(msg.substr(start, end - start)));
-      start = end + 1;
-   }
-   this->params.push_back(stoi(msg.substr(start)));
-
-   ESP_LOGD(TAG, "Parsed current params:", this->params.size());
-   for (size_t i = 0; i < this->params.size(); ++i) {
-      ESP_LOGD(TAG, "  [%zu] = %d", i, this->params[i]);
-   }
-
-   this->publish_params();
-
-   // write new params if any task is up
-   while (!this->paramTaskQueue.empty()) {
-      auto task = this->paramTaskQueue.front();
-      this->paramTaskQueue.pop();
-      task();
-      this->param_no_pub = false;
-   }
-}
-
-void GatePro::write_params() {
-   std::string msg = WRITE_PARAMS_START;
-   for (size_t i = 0; i < this->params.size(); i++) {
-      msg += to_string(this->params[i]);
-      if (i != this->params.size() -1) {
-         msg += ",";
-      }
-   }
-   //msg += ";src=P00287D7";
-   std::strcpy(this->params_cmd, msg.c_str());
-   ESP_LOGD(TAG, "BUILT PARAMS: %s", this->params_cmd);
-   this->tx_queue.push(this->params_cmd);
-
-   // read params again just to update frontend and make sure :)
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
 }
 
 ////////////////////////////////////////////
@@ -440,8 +431,6 @@ void GatePro::update() {
 }
 
 void GatePro::loop() {
-   // keep reading uart for changes
-   //this->read_uart();
    this->process();
 }
 

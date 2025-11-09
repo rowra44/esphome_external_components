@@ -29,7 +29,7 @@ const std::map<GateProCmd, const char*> GateProCmdMapping = {
    {GATEPRO_CMD_STOP, "STOP;src=P00287D7"},
    {GATEPRO_CMD_READ_STATUS, "RS;src=P00287D7"},
    {GATEPRO_CMD_READ_PARAMS, "RP,1:;src=P00287D7"},
-   {GATEPRO_CMD_WRITE_PARAMS, "WP,1:"},
+   {GATEPRO_CMD_WRITE_PARAMS, "WP,1:"}, // this is only the start of the cmd! followed by values
    {GATEPRO_CMD_LEARN, "AUTO LEARN;src=P00287D7"},
    {GATEPRO_CMD_DEVINFO, "READ DEVINFO;src=P00287D7"},
    {GATEPRO_CMD_READ_LEARN_STATUS, "READ LEARN STATUS;src=P00287D7"},
@@ -63,23 +63,36 @@ struct GateProMsgConstant {
 };
 
 const std::map<GateProMsgType, const GateProMsgConstant> GateProMsgTypeMapping = {
+   // ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
    {GATEPRO_MSG_ACK_RS, {0, 6, "ACK RS"}},
+   // ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
    {GATEPRO_MSG_ACK_RP, {0, 6, "ACK RP"}},
+   // ACK WP,1\r\n
    {GATEPRO_MSG_ACK_RP, {0, 6, "ACK WP"}},
+   // $V1PKF0,17,Closed;src=0001\r\n
    {GATEPRO_MSG_MOTOR_EVENT, {0, 7, "$V1PKF0"}},
+   // ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
    {GATEPRO_MSG_ACK_READ_DEVINFO, {0, 16, "ACK READ DEVINFO"}},
+   // ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n
    {GATEPRO_MSG_ACK_LEARN_STATUS, {0, 16, "ACK LEARN STATUS"}},
 };
 
 const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
+   // $V1PKF0,??,Opening;src=0001\r\n
    {MOTOR_EVENT_OPENING, {11, 7, "Opening"}},
+   // $V1PKF0,??,Opened;src=0001\r\n
    {MOTOR_EVENT_OPENED, {11, 6, "Opened"}},
+   // $V1PKF0,??,Closing;src=0001\r\n
    {MOTOR_EVENT_CLOSING, {11, 7, "Closing"}},
+   // $V1PKF0,??,AutoClosing;src=0001\r\n
    {MOTOR_EVENT_CLOSING, {11, 11, "AutoClosing"}}, // for all currently known scopes, autoclose === close
+   // $V1PKF0,??,Closed;src=0001\r\n
    {MOTOR_EVENT_CLOSED, {11, 6, "Closed"}},
+   // $V1PKF0,??,Stopped;src=0001\r\n
    {MOTOR_EVENT_STOPPED, {11, 7, "Stopped"}},
 };
 
+// necessary for comfortable processing & to avoid confusion
 const std::map<int, const std::string> ConversionMap {
    {7, "\\a"},
    {8, "\\b"},
@@ -105,9 +118,11 @@ const int KNOWN_PERCENTAGE_OFFSET = 128;
 // maximum acceptable difference of target pos / current pos in %
 const float ACCEPTABLE_DIFF = 0.05f;
 // status percentage location
+      // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
+      //                          ^- percentage in hex
 const GateProMsgConstant STATUS_PERCENTAGE = {16, 2, ""};
 const GateProMsgConstant PARAMS = {9, 33, ""};
-const std::string WRITE_PARAMS_START = "WP,1:";
-
+// ticks to update after an operation
+const int AFTER_TICK_MAX = 10;
 
 }}

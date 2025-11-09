@@ -34,9 +34,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       // learn status
       text_sensor::TextSensor *txt_learn_status{nullptr};
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
-
-      // Param controllers
-      void set_param(int idx, int val);
+     
       // Numbers
       struct NumberWithIdx{
          u_int idx;
@@ -69,46 +67,41 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       std::string current_msg;
       bool read_msg();
       GateProMsgType identify_current_msg_type(std::map<GateProMsgType, const GateProMsgConstant>);
+      std::string convert(uint8_t*, size_t);
 
       // param logic
       std::vector<int> params;
       char params_cmd[50];
-      void parse_params(std::string msg);
       bool param_no_pub = false;
+      std::queue<std::function<void()>> paramTaskQueue;
+      void parse_params(std::string msg);
       void publish_params();
       void write_params();
-      std::queue<std::function<void()>> paramTaskQueue;
-
-      // abstract (cover) logic
-      void control(const cover::CoverCall &call) override;
-      void start_direction_(cover::CoverOperation dir);
+      void set_param(int idx, int val);
 
       // device logic
-      std::string convert(uint8_t*, size_t);
-      void process();
-      void queue_gatepro_cmd(GateProCmd cmd);
-      void read_uart();
-      void write_uart();
-      void debug();
-      std::queue<const char*> tx_queue;
-      std::queue<std::string> rx_queue;
-
-      // sensor logic
-      void correction_after_operation();
-      cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
-      void publish();
-      void stop_at_target_position();
-      // how many 'ticks' to update after position hasn't changed
-      const int after_tick_max = 10;
-      int after_tick = after_tick_max;
-
-      // UART parser constants
-      std::string msg_buff;
-
+      int after_tick = AFTER_TICK_MAX;
       float target_position_;
       float position_;
       bool operation_finished;
       cover::CoverCall* last_call_;
+      cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
+      void queue_gatepro_cmd(GateProCmd cmd);
+      void control(const cover::CoverCall &call) override;
+      void start_direction_(cover::CoverOperation dir);
+      void stop_at_target_position();
+      void correction_after_operation();
+      void process();
+
+      // sensor logic
+      void publish();
+
+      // UART
+      std::string msg_buff;
+      std::queue<const char*> tx_queue;
+      std::queue<std::string> rx_queue;
+      void read_uart();
+      void write_uart();
 };
 
 }  // namespace gatepro
