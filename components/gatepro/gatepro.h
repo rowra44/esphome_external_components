@@ -18,44 +18,17 @@ namespace gatepro {
 
 class GatePro : public cover::Cover, public PollingComponent, public uart::UARTDevice {
    public:
-      // auto-learn btn
-      esphome::button::Button *btn_learn;
       void set_btn_learn(esphome::button::Button *btn) { btn_learn = btn; }
-      // get params od btn
-      esphome::button::Button *btn_params_od;
       void set_btn_params_od(esphome::button::Button *btn) { btn_params_od = btn; }
-      // remote learn btn
-      esphome::button::Button *btn_remote_learn;
       void set_btn_remote_learn(esphome::button::Button *btn) { btn_remote_learn = btn; }
-
-      // devinfo
-      text_sensor::TextSensor *txt_devinfo{nullptr};
       void set_txt_devinfo(esphome::text_sensor::TextSensor *txt) { txt_devinfo = txt; }
-      // learn status
-      text_sensor::TextSensor *txt_learn_status{nullptr};
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
-     
-      // Numbers
-      struct NumberWithIdx{
-         u_int idx;
-         number::Number *slider;
-         NumberWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
-      };
-      std::vector<NumberWithIdx> sliders_with_indices;
       void set_number(u_int param_idx, number::Number *slider) {
          this->sliders_with_indices.push_back(NumberWithIdx(param_idx, slider));
       }
-      // Switches
-      struct SwitchWithIdx{
-         u_int idx;
-         switch_::Switch *switch_;
-         SwitchWithIdx(u_int idx, switch_::Switch *switch_) : idx(idx), switch_(switch_) {};
-      };
-      std::vector<SwitchWithIdx> switches_with_indices;
       void set_switch(u_int param_idx, switch_::Switch *switch_) {
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
-
       void setup() override;
       void update() override;
       void loop() override;
@@ -63,6 +36,20 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       cover::CoverTraits get_traits() override;
 
    protected:
+      // device logic
+      int after_tick = AFTER_TICK_MAX;
+      float target_position_;
+      float position_;
+      bool operation_finished;
+      cover::CoverCall* last_call_;
+      cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
+      void queue_gatepro_cmd(GateProCmd cmd);
+      void control(const cover::CoverCall &call) override;
+      void start_direction_(cover::CoverOperation dir);
+      void stop_at_target_position();
+      void correction_after_operation();
+      void process();
+
       // helpers
       std::string current_msg;
       bool read_msg();
@@ -79,20 +66,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void write_params();
       void set_param(int idx, int val);
 
-      // device logic
-      int after_tick = AFTER_TICK_MAX;
-      float target_position_;
-      float position_;
-      bool operation_finished;
-      cover::CoverCall* last_call_;
-      cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
-      void queue_gatepro_cmd(GateProCmd cmd);
-      void control(const cover::CoverCall &call) override;
-      void start_direction_(cover::CoverOperation dir);
-      void stop_at_target_position();
-      void correction_after_operation();
-      void process();
-
       // sensor logic
       void publish();
 
@@ -102,6 +75,25 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       std::queue<std::string> rx_queue;
       void read_uart();
       void write_uart();
+
+      // UI
+      esphome::button::Button *btn_learn;
+      esphome::button::Button *btn_params_od;
+      esphome::button::Button *btn_remote_learn;
+      text_sensor::TextSensor *txt_devinfo{nullptr};
+      text_sensor::TextSensor *txt_learn_status{nullptr};
+      struct NumberWithIdx{
+         u_int idx;
+         number::Number *slider;
+         NumberWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
+      };
+      std::vector<NumberWithIdx> sliders_with_indices;
+      struct SwitchWithIdx{
+         u_int idx;
+         switch_::Switch *switch_;
+         SwitchWithIdx(u_int idx, switch_::Switch *switch_) : idx(idx), switch_(switch_) {};
+      };
+      std::vector<SwitchWithIdx> switches_with_indices;
 };
 
 }  // namespace gatepro

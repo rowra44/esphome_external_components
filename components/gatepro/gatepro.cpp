@@ -9,125 +9,6 @@ namespace gatepro {
 static const char* TAG = "gatepro";
 
 ////////////////////////////////////////////
-// Helper / misc functions
-////////////////////////////////////////////
-bool GatePro::read_msg() {
-   this->read_uart();
-   if (!this->rx_queue.size()) {
-      return false;
-   }
-   this->current_msg = this->rx_queue.front();
-   this->rx_queue.pop();
-   return true;
-}
-
-GateProMsgType GatePro::identify_current_msg_type(
-   std::map<GateProMsgType, const GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
-   for (const auto& [key, value] : possibilities) {
-      if (this->current_msg.substr(value.pos, value.len) == value.match) {
-         return key;
-      }
-   }
-   return GATEPRO_MSG_UNKNOWN;
-}
-
-std::string GatePro::convert(uint8_t* bytes, size_t len) {
-	std::string res;
-	char buf[5];
-	for (size_t i = 0; i < len; i++) {
-      auto cm = ConversionMap.find(bytes[i]);
-      if (cm != ConversionMap.end()) {
-         res += cm->second;
-		} else if (bytes[i] < 32 || bytes[i] > 127) {
-			sprintf(buf, "\\x%02X", bytes[i]);
-			res += buf;
-		} else {
-			res += bytes[i];
-		}
-	}
-	//ESP_LOGD(TAG, "%s", res.c_str());
-	return res;
-}
-
-////////////////////////////////////////////
-// Parameters
-////////////////////////////////////////////
-void GatePro::parse_params(std::string msg) {
-   this->params.clear();
-   // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-   //                   ^-9  
-   msg = msg.substr(PARAMS.pos, PARAMS.len);
-   size_t start = 0;
-   size_t end;
-
-   // efficiently split on ','
-   while((end = msg.find(',', start)) != std::string::npos) {
-      this->params.push_back(stoi(msg.substr(start, end - start)));
-      start = end + 1;
-   }
-   this->params.push_back(stoi(msg.substr(start)));
-
-   ESP_LOGD(TAG, "Parsed current params:", this->params.size());
-   for (size_t i = 0; i < this->params.size(); ++i) {
-      ESP_LOGD(TAG, "  [%zu] = %d", i, this->params[i]);
-   }
-
-   this->publish_params();
-
-   // write new params if any task is up
-   while (!this->paramTaskQueue.empty()) {
-      auto task = this->paramTaskQueue.front();
-      this->paramTaskQueue.pop();
-      task();
-      this->param_no_pub = false;
-   }
-}
-
-void GatePro::publish_params() {
-   if (!this->param_no_pub) {
-      // Numbers
-      for (auto swi : this->sliders_with_indices) {
-         swi.slider->publish_state(this->params[swi.idx]);
-      }
-      // Switches
-      for (auto swi : this->switches_with_indices) {
-         swi.switch_->publish_state(this->params[swi.idx]);
-      }
-   }
-}
-
-void GatePro::write_params() {
-   std::string msg = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
-   for (size_t i = 0; i < this->params.size(); i++) {
-      msg += to_string(this->params[i]);
-      if (i != this->params.size() -1) {
-         msg += ",";
-      }
-   }
-   //msg += ";src=P00287D7";
-   std::strcpy(this->params_cmd, msg.c_str());
-   ESP_LOGD(TAG, "BUILT PARAMS: %s", this->params_cmd);
-   this->tx_queue.push(this->params_cmd);
-
-   // read params again just to update frontend and make sure :)
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-}
-
-void GatePro::set_param(int idx, int val) {
-   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
-   this->param_no_pub = true;
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-
-   this->paramTaskQueue.push(
-      [this, idx, val](){
-         ESP_LOGD(TAG, "Initiating set speed");
-         this->params[idx] = val;
-         this->write_params();
-      });
-}
-
-
-////////////////////////////////////////////
 // Device logic
 ////////////////////////////////////////////
 void GatePro::queue_gatepro_cmd(GateProCmd cmd) {
@@ -289,6 +170,124 @@ void GatePro::process() {
          this->txt_learn_status->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
          return;
    } 
+}
+
+////////////////////////////////////////////
+// Helper / misc functions
+////////////////////////////////////////////
+bool GatePro::read_msg() {
+   this->read_uart();
+   if (!this->rx_queue.size()) {
+      return false;
+   }
+   this->current_msg = this->rx_queue.front();
+   this->rx_queue.pop();
+   return true;
+}
+
+GateProMsgType GatePro::identify_current_msg_type(
+   std::map<GateProMsgType, const GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
+   for (const auto& [key, value] : possibilities) {
+      if (this->current_msg.substr(value.pos, value.len) == value.match) {
+         return key;
+      }
+   }
+   return GATEPRO_MSG_UNKNOWN;
+}
+
+std::string GatePro::convert(uint8_t* bytes, size_t len) {
+	std::string res;
+	char buf[5];
+	for (size_t i = 0; i < len; i++) {
+      auto cm = ConversionMap.find(bytes[i]);
+      if (cm != ConversionMap.end()) {
+         res += cm->second;
+		} else if (bytes[i] < 32 || bytes[i] > 127) {
+			sprintf(buf, "\\x%02X", bytes[i]);
+			res += buf;
+		} else {
+			res += bytes[i];
+		}
+	}
+	//ESP_LOGD(TAG, "%s", res.c_str());
+	return res;
+}
+
+////////////////////////////////////////////
+// Parameters
+////////////////////////////////////////////
+void GatePro::parse_params(std::string msg) {
+   this->params.clear();
+   // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
+   //                   ^-9  
+   msg = msg.substr(PARAMS.pos, PARAMS.len);
+   size_t start = 0;
+   size_t end;
+
+   // efficiently split on ','
+   while((end = msg.find(',', start)) != std::string::npos) {
+      this->params.push_back(stoi(msg.substr(start, end - start)));
+      start = end + 1;
+   }
+   this->params.push_back(stoi(msg.substr(start)));
+
+   ESP_LOGD(TAG, "Parsed current params:", this->params.size());
+   for (size_t i = 0; i < this->params.size(); ++i) {
+      ESP_LOGD(TAG, "  [%zu] = %d", i, this->params[i]);
+   }
+
+   this->publish_params();
+
+   // write new params if any task is up
+   while (!this->paramTaskQueue.empty()) {
+      auto task = this->paramTaskQueue.front();
+      this->paramTaskQueue.pop();
+      task();
+      this->param_no_pub = false;
+   }
+}
+
+void GatePro::publish_params() {
+   if (!this->param_no_pub) {
+      // Numbers
+      for (auto swi : this->sliders_with_indices) {
+         swi.slider->publish_state(this->params[swi.idx]);
+      }
+      // Switches
+      for (auto swi : this->switches_with_indices) {
+         swi.switch_->publish_state(this->params[swi.idx]);
+      }
+   }
+}
+
+void GatePro::write_params() {
+   std::string msg = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
+   for (size_t i = 0; i < this->params.size(); i++) {
+      msg += to_string(this->params[i]);
+      if (i != this->params.size() -1) {
+         msg += ",";
+      }
+   }
+   //msg += ";src=P00287D7";
+   std::strcpy(this->params_cmd, msg.c_str());
+   ESP_LOGD(TAG, "BUILT PARAMS: %s", this->params_cmd);
+   this->tx_queue.push(this->params_cmd);
+
+   // read params again just to update frontend and make sure :)
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+}
+
+void GatePro::set_param(int idx, int val) {
+   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
+   this->param_no_pub = true;
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+
+   this->paramTaskQueue.push(
+      [this, idx, val](){
+         ESP_LOGD(TAG, "Initiating set speed");
+         this->params[idx] = val;
+         this->write_params();
+      });
 }
 
 ////////////////////////////////////////////
