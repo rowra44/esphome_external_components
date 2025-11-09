@@ -88,7 +88,7 @@ void GatePro::process() {
          return;
 
       // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-      case GATEPRO_MSG_ACP_RP:
+      case GATEPRO_MSG_ACK_RP:
          this->parse_params(this->current_msg);
          return;
 
