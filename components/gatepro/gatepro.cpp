@@ -38,17 +38,33 @@ void GatePro::publish() {
 ////////////////////////////////////////////
 // GatePro logic functions
 ////////////////////////////////////////////
-void GatePro::process() {
+bool GatePro::read_msg() {
+   this->read_uart();
    if (!this->rx_queue.size()) {
+      return false;
+   }
+   this->current_msg = this->rx_queue.front();
+   this->rx_queue.pop();
+   return true;
+}
+
+void GatePro::identify_msg_type() {
+
+}
+
+///
+void GatePro::process() {
+   // try reading a message from uart
+   if (!this->read_msg()) {
       return;
    }
-   std::string msg = this->rx_queue.front();
-   this->rx_queue.pop();
 
    //ESP_LOGD(TAG, "UART RX: %s", (const char*)msg.c_str());
    // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
    //                          ^- percentage in hex
-   if (msg.substr(0, 6) == "ACK RS") {
+   //if (msg.substr(0, 6) == "ACK RS") {
+   GateProMsgConstant ack_rs = GateProMsgTypeMapping[GATEPRO_MSG_RS];
+   if (this->current_msg.substr(ack_rs.from, ack_rs.to) == ack_rs.match)
       // status only matters when in motion (operation not finished) 
       if (this->operation_finished) {
          return;

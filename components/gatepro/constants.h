@@ -39,4 +39,19 @@ const std::map<GateProCmd, const char*> GateProCmdMapping = {
    {GATEPRO_CMD_READ_FUNCTION, "READ FUNCTION;src=P00287D7"},
 };
 
+enum GateProMsg : uint8_t {
+   GATEPRO_MSG_RS,
+};
+
+struct GateProMsgConstant {
+   int substr_from;
+   int substr_to;
+   std::string match;
+};
+
+const std::map<GateProMsg, GateProMsgConstant> GateProMsgTypeMapping = {
+   {GATEPRO_MSG_RS, {0, 6, "ACK RS"}},
+};
+
+
 }}

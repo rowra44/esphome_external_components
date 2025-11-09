@@ -65,6 +65,9 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       cover::CoverTraits get_traits() override;
 
    protected:
+      // helpers
+      std::string current_msg;
+
       // param logic
       std::vector<int> params;
       char params_cmd[50];
