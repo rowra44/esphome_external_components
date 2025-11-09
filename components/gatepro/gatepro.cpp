@@ -73,7 +73,7 @@ void GatePro::process() {
 
       // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
       //                          ^- percentage in hex
-      case GATEPRO_MSG_ACK_RS:
+      case GATEPRO_MSG_ACK_RS: {
          // status only matters when in motion (operation not finished) 
          if (this->operation_finished) {
             return;
@@ -86,6 +86,7 @@ void GatePro::process() {
          }
          this->position = (float)percentage / 100;
          return;
+      }
 
       // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
       case GATEPRO_MSG_ACK_RP:
