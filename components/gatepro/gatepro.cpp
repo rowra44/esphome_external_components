@@ -97,7 +97,7 @@ void GatePro::publish_params() {
 }
 
 void GatePro::write_params() {
-   std::string msg = GATEPRO_CMD_WRITE_PARAMS;
+   std::string msg = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
    for (size_t i = 0; i < this->params.size(); i++) {
       msg += to_string(this->params[i]);
       if (i != this->params.size() -1) {
