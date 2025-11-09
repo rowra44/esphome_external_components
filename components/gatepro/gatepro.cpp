@@ -63,7 +63,7 @@ void GatePro::process() {
    // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
    //                          ^- percentage in hex
    //if (msg.substr(0, 6) == "ACK RS") {
-   GateProMsgConstant ack_rs = GateProMsgTypeMapping[GATEPRO_MSG_RS];
+   GateProMsgConstant ack_rs = GateProMsgTypeMapping.at(GATEPRO_MSG_RS);
    if (this->current_msg.substr(ack_rs.from, ack_rs.to) == ack_rs.match)
       // status only matters when in motion (operation not finished) 
       if (this->operation_finished) {
