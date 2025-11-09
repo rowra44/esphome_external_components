@@ -68,7 +68,8 @@ void GatePro::process() {
    switch (current_msg_type) {
       case GATEPRO_MSG_UNKNOWN:
          ESP_LOGD(TAG, "Unkown message type");
-         return;
+         break;
+         //return;
       case GATEPRO_MSG_RS:
          // status only matters when in motion (operation not finished) 
          if (this->operation_finished) {
