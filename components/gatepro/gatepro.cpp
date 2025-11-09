@@ -430,8 +430,6 @@ void GatePro::setup() {
          }
       );
    }
-   
-   this->initial_movement();
 }
 
 void GatePro::update() {

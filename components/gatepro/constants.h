@@ -75,6 +75,10 @@ const std::map<GateProMsgType, const GateProMsgConstant> GateProMsgTypeMapping =
    {GATEPRO_MSG_ACK_READ_DEVINFO, {0, 16, "ACK READ DEVINFO"}},
    // ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n
    {GATEPRO_MSG_ACK_LEARN_STATUS, {0, 16, "ACK LEARN STATUS"}},
+   // ACK FULL CLOSE\r\n
+   {GATEPRO_MSG_ACK_LEARN_STATUS, {0, 14, "ACK FULL CLOSE"}},
+   // ACK FULL OPEN\r\n
+   {GATEPRO_MSG_ACK_LEARN_STATUS, {0, 13, "ACK FULL OPEN"}},
 };
 
 const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
