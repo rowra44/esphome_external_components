@@ -100,7 +100,7 @@ void GatePro::process() {
 
       // Event message from the motor
       // example: $V1PKF0,17,Closed;src=0001\r\n
-      case GATEPRO_MSG_MOTOR_EVENT:
+      case GATEPRO_MSG_MOTOR_EVENT: {
          GateProMsgType motor_event = this->identify_current_msg_type(MotorEvents);
          switch(motor_event) {
             case GATEPRO_MSG_UNKNOWN:
@@ -137,6 +137,7 @@ void GatePro::process() {
                return;            
          }
          return; // should never reach here.. but just to be safe..
+      }
 
       // Devinfo example: ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
       case GATEPRO_MSG_ACK_READ_DEVINFO:
