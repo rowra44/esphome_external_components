@@ -48,9 +48,9 @@ bool GatePro::read_msg() {
    return true;
 }
 
-void GatePro::identify_msg_type() {
+/*void GatePro::identify_msg_type() {
 
-}
+}*/
 
 ///
 void GatePro::process() {
@@ -443,7 +443,7 @@ void GatePro::update() {
 
 void GatePro::loop() {
    // keep reading uart for changes
-   this->read_uart();
+   //this->read_uart();
    this->process();
 }
 

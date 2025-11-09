@@ -67,6 +67,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
    protected:
       // helpers
       std::string current_msg;
+      bool read_msg();
 
       // param logic
       std::vector<int> params;
