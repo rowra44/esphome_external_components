@@ -21,6 +21,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void set_btn_learn(esphome::button::Button *btn) { btn_learn = btn; }
       void set_btn_params_od(esphome::button::Button *btn) { btn_params_od = btn; }
       void set_btn_remote_learn(esphome::button::Button *btn) { btn_remote_learn = btn; }
+      void set_btn_read_status(esphome::button::Button *btn) { btn_read_status = btn; }
       void set_txt_devinfo(esphome::text_sensor::TextSensor *txt) { txt_devinfo = txt; }
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
       void set_number(u_int param_idx, number::Number *slider) {
@@ -82,6 +83,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       esphome::button::Button *btn_learn;
       esphome::button::Button *btn_params_od;
       esphome::button::Button *btn_remote_learn;
+      esphome::button::Button *btn_read_status;
       text_sensor::TextSensor *txt_devinfo{nullptr};
       text_sensor::TextSensor *txt_learn_status{nullptr};
       struct NumberWithIdx{

@@ -22,6 +22,7 @@ CONF_LEARN = "learn"
 CONF_PARAMS_OD = "params"
 CONF_REMOTE_LEARN = "remote_learn"
 CONF_PED_OPEN = "ped_open"
+CONF_READ_STATUS = "read_status"
 # text sensors
 CONF_DEVINFO = "devinfo"
 CONF_LEARN_STATUS = "learn_status"
@@ -33,6 +34,7 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
         cv.Optional(CONF_LEARN): cv.use_id(button.Button),
         cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
         cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
+        cv.Optional(CONF_READ_STATUS): cv.use_id(button.Button),
         # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
@@ -98,3 +100,6 @@ async def to_code(config):
     if CONF_REMOTE_LEARN in config:
         btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
         cg.add(var.set_btn_remote_learn(btn))
+    if CONF_READ_STATUS in config:
+        btn = await cg.get_variable(config[CONF_READ_STATUS])
+        cg.add(var.set_btn_read_status(btn))
