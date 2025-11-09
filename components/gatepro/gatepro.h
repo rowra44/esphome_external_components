@@ -108,10 +108,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       const std::string tx_delimiter = "\r\n";
       std::string msg_buff;
 
-      // black magic shit..
-      const int known_percentage_offset = 128;
-      // maximum acceptable difference in %
-      const float acceptable_diff = 0.05f;
       float target_position_;
       float position_;
       bool operation_finished;

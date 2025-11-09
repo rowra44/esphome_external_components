@@ -48,9 +48,10 @@ bool GatePro::read_msg() {
    return true;
 }
 
-GateProMsgType GatePro::identify_current_msg_type() {
-   for (const auto& [key, value] : GateProMsgTypeMapping) {
-      if (this->current_msg.substr(value.substr_from, value.substr_to) == value.match) {
+GateProMsgType GatePro::identify_current_msg_type(
+   std::map<GateProMsgType, GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
+   for (const auto& [key, value] : possibilities) {
+      if (this->current_msg.substr(value.pos, value.len) == value.match) {
          return key;
       }
    }
@@ -68,86 +69,88 @@ void GatePro::process() {
    switch (current_msg_type) {
       case GATEPRO_MSG_UNKNOWN:
          ESP_LOGD(TAG, "Unkown message type");
-         break;
-         //return;
-      case GATEPRO_MSG_RS:
+         return;
+
+      // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
+      //                          ^- percentage in hex
+      case GATEPRO_MSG_ACK_RS:
          // status only matters when in motion (operation not finished) 
          if (this->operation_finished) {
             return;
          }
-         msg = msg.substr(16, 2);
-         int percentage = stoi(msg, 0, 16);
+         const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos, STATUS_PERCENTAGE.len);
+         int percentage = stoi(percentage_string, 0, 16);
          // percentage correction with known offset, if necessary
          if (percentage > 100) {
-            percentage -= this->known_percentage_offset;
+            percentage -= KNOWN_PERCENTAGE_OFFSET;
          }
          this->position = (float)percentage / 100;
          return;
-   }
 
-   //ESP_LOGD(TAG, "UART RX: %s", (const char*)msg.c_str());
-   // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
-   //                          ^- percentage in hex
-   //if (msg.substr(0, 6) == "ACK RS") {
-   
-
-   // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-   if (msg.substr(0, 6) == "ACK RP") {
-      this->parse_params(msg);
-      return;
-   }
-
-   // ACK WP example: ACK WP,1\r\n
-   if (msg.substr(0, 6) == "ACK WP") {
-      ESP_LOGD(TAG, "Write params acknowledged");
-      return;
-   }
-
-   // Event message from the motor
-   // example: $V1PKF0,17,Closed;src=0001\r\n
-   if (msg.substr(0, 7) == "$V1PKF0") {
-      if (msg.substr(11, 7) == "Opening") {
-      this->operation_finished = false;
-      this->current_operation = cover::COVER_OPERATION_OPENING;
-      this->last_operation_ = cover::COVER_OPERATION_OPENING;
-      return;
-      }
-      if (msg.substr(11, 6) == "Opened") {
-         this->operation_finished = true;
-         this->target_position_ = 0.0f;
-         this->current_operation = cover::COVER_OPERATION_IDLE;
+      // Read param example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
+      case GATEPRO_MSG_ACP_RP:
+         this->parse_params(this->current_msg);
          return;
-      }
-      if (msg.substr(11, 7) == "Closing" || msg.substr(11, 11) == "AutoClosing") {
-         this->operation_finished = false;
-         this->current_operation = cover::COVER_OPERATION_CLOSING;
-         this->last_operation_ = cover::COVER_OPERATION_CLOSING;
-         return;
-      }
-      if (msg.substr(11, 6) == "Closed") {
-         this->operation_finished = true;
-         this->target_position_ = 0.0f;
-         this->current_operation = cover::COVER_OPERATION_IDLE;
-         return;
-      }
-      if (msg.substr(11, 7) == "Stopped") {
-         this->target_position_ = 0.0f;
-         this->current_operation = cover::COVER_OPERATION_IDLE;
-         return;
-      }
-   }
 
-   // Devinfo example: ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
-   if (msg.substr(0, 16) == "ACK READ DEVINFO" && this->txt_devinfo) {
-      this->txt_devinfo->publish_state(msg.substr(17, msg.size() - (17 + 4)));
-      return;
-   }
+      // ACK WP example: ACK WP,1\r\n
+      case GATEPRO_MSG_ACK_WP:
+         ESP_LOGD(TAG, "Write params acknowledged");
+         return;
 
-   // Devinfo example: ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n /
-   if (msg.substr(0, 16) == "ACK LEARN STATUS" && this->txt_learn_status) {
-      this->txt_learn_status->publish_state(msg.substr(17, msg.size() - (17 + 4)));
-      return;
-   }
+      // Event message from the motor
+      // example: $V1PKF0,17,Closed;src=0001\r\n
+      case GATEPRO_MSG_MOTOR_EVENT:
+         GateProMsgType motor_event = this->identify_current_msg_type(MotorEvents);
+         switch(motor_event) {
+            case GATEPRO_MSG_UNKNOWN:
+               ESP_LOGD(TAG, "Unkown motor event");
+               return;
+
+            case MOTOR_EVENT_OPENING:
+               this->operation_finished = false;
+               this->current_operation = cover::COVER_OPERATION_OPENING;
+               this->last_operation_ = cover::COVER_OPERATION_OPENING;
+               return;
+            
+            case MOTOR_EVENT_OPENED:
+               this->operation_finished = true;
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;
+            
+            case MOTOR_EVENT_CLOSING:
+               this->operation_finished = false;
+               this->current_operation = cover::COVER_OPERATION_CLOSING;
+               this->last_operation_ = cover::COVER_OPERATION_CLOSING;
+               return;
+
+            case MOTOR_EVENT_CLOSED:
+               this->operation_finished = true;
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;
+               
+            case MOTOR_EVENT_STOPPED:
+               this->target_position_ = 0.0f;
+               this->current_operation = cover::COVER_OPERATION_IDLE;
+               return;            
+         }
+         return; // should never reach here.. but just to be safe..
+
+      // Devinfo example: ACK READ DEVINFO:P500BU,PS21053C,V01\r\n
+      case GATEPRO_MSG_ACK_READ_DEVINFO:
+         if (!this->txt_devinfo)
+            return;
+         this->txt_devinfo->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
+         return;
+
+      // Devinfo example: ACK LEARN STATUS:SYSTEM LEARN COMPLETE,0\r\n /
+      case GATEPRO_MSG_ACK_LEARN_STATUS:
+         if (!this->txt_learn_status)
+            return;
+         this->txt_learn_status->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
+         return;
+   } 
 }
 
 ////////////////////////////////////////////
@@ -215,7 +218,7 @@ void GatePro::stop_at_target_position() {
          this->target_position_ != cover::COVER_OPEN &&
          this->target_position_ != cover::COVER_CLOSED) {
       const float diff = abs(this->position - this->target_position_);
-      if (diff < this->acceptable_diff) {
+      if (diff < ACCEPTABLE_DIFF) {
          this->make_call().set_command_stop().perform();
       }
    }
@@ -329,7 +332,7 @@ void GatePro::parse_params(std::string msg) {
    this->params.clear();
    // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
    //                   ^-9  
-   msg = msg.substr(9, 33);
+   msg = msg.substr(PARAMS.pos, PARAMS.len);
    size_t start = 0;
    size_t end;
 
@@ -357,7 +360,7 @@ void GatePro::parse_params(std::string msg) {
 }
 
 void GatePro::write_params() {
-   std::string msg = "WP,1:";
+   std::string msg = WRITE_PARAMS_START;
    for (size_t i = 0; i < this->params.size(); i++) {
       msg += to_string(this->params[i]);
       if (i != this->params.size() -1) {
