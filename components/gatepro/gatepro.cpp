@@ -9,6 +9,47 @@ namespace gatepro {
 static const char* TAG = "gatepro";
 
 ////////////////////////////////////////////
+// Helper / misc functions
+////////////////////////////////////////////
+bool GatePro::read_msg() {
+   this->read_uart();
+   if (!this->rx_queue.size()) {
+      return false;
+   }
+   this->current_msg = this->rx_queue.front();
+   this->rx_queue.pop();
+   return true;
+}
+
+GateProMsgType GatePro::identify_current_msg_type(
+   std::map<GateProMsgType, const GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
+   for (const auto& [key, value] : possibilities) {
+      if (this->current_msg.substr(value.pos, value.len) == value.match) {
+         return key;
+      }
+   }
+   return GATEPRO_MSG_UNKNOWN;
+}
+
+std::string GatePro::convert(uint8_t* bytes, size_t len) {
+	std::string res;
+	char buf[5];
+	for (size_t i = 0; i < len; i++) {
+      auto cm = ConversionMap.find(bytes[i]);
+      if (cm != ConversionMap.end()) {
+         res += cm->second;
+		} else if (bytes[i] < 32 || bytes[i] > 127) {
+			sprintf(buf, "\\x%02X", bytes[i]);
+			res += buf;
+		} else {
+			res += bytes[i];
+		}
+	}
+	//ESP_LOGD(TAG, "%s", res.c_str());
+	return res;
+}
+
+////////////////////////////////////////////
 // Device logic
 ////////////////////////////////////////////
 void GatePro::queue_gatepro_cmd(GateProCmd cmd) {
@@ -170,47 +211,6 @@ void GatePro::process() {
          this->txt_learn_status->publish_state(this->current_msg.substr(17, this->current_msg.size() - (17 + 4)));
          return;
    } 
-}
-
-////////////////////////////////////////////
-// Helper / misc functions
-////////////////////////////////////////////
-bool GatePro::read_msg() {
-   this->read_uart();
-   if (!this->rx_queue.size()) {
-      return false;
-   }
-   this->current_msg = this->rx_queue.front();
-   this->rx_queue.pop();
-   return true;
-}
-
-GateProMsgType GatePro::identify_current_msg_type(
-   std::map<GateProMsgType, const GateProMsgConstant> possibilities = GateProMsgTypeMapping) {
-   for (const auto& [key, value] : possibilities) {
-      if (this->current_msg.substr(value.pos, value.len) == value.match) {
-         return key;
-      }
-   }
-   return GATEPRO_MSG_UNKNOWN;
-}
-
-std::string GatePro::convert(uint8_t* bytes, size_t len) {
-	std::string res;
-	char buf[5];
-	for (size_t i = 0; i < len; i++) {
-      auto cm = ConversionMap.find(bytes[i]);
-      if (cm != ConversionMap.end()) {
-         res += cm->second;
-		} else if (bytes[i] < 32 || bytes[i] > 127) {
-			sprintf(buf, "\\x%02X", bytes[i]);
-			res += buf;
-		} else {
-			res += bytes[i];
-		}
-	}
-	//ESP_LOGD(TAG, "%s", res.c_str());
-	return res;
 }
 
 ////////////////////////////////////////////

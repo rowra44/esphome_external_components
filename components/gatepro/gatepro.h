@@ -36,6 +36,12 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       cover::CoverTraits get_traits() override;
 
    protected:
+      // helpers
+      std::string current_msg;
+      bool read_msg();
+      GateProMsgType identify_current_msg_type(std::map<GateProMsgType, const GateProMsgConstant>);
+      std::string convert(uint8_t*, size_t);
+
       // device logic
       int after_tick = AFTER_TICK_MAX;
       float target_position_;
@@ -49,12 +55,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void stop_at_target_position();
       void correction_after_operation();
       void process();
-
-      // helpers
-      std::string current_msg;
-      bool read_msg();
-      GateProMsgType identify_current_msg_type(std::map<GateProMsgType, const GateProMsgConstant>);
-      std::string convert(uint8_t*, size_t);
 
       // param logic
       std::vector<int> params;
