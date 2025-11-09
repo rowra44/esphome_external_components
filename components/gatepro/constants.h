@@ -77,7 +77,7 @@ const std::map<GateProMsgType, GateProMsgConstant> MotorEvents = {
    {MOTOR_EVENT_CLOSING, {11, 7, "Closing"}},
    {MOTOR_EVENT_CLOSING, {11, 11, "AutoClosing"}}, // for all currently known scopes, autoclose === close
    {MOTOR_EVENT_CLOSED, {11, 6, "Closed"}},
-   {MOTOR_EVENT_CLOSED, {11, 7, "Stopped"}},
+   {MOTOR_EVENT_STOPPED, {11, 7, "Stopped"}},
 };
 
 /* Misc constants
@@ -87,8 +87,8 @@ const int KNOWN_PERCENTAGE_OFFSET = 128;
 // maximum acceptable difference of target pos / current pos in %
 const float ACCEPTABLE_DIFF = 0.05f;
 // status percentage location
-GateProMsgConstant STATUS_PERCENTAGE = {16, 2, ""};
-GateProMsgConstant PARAMS = {9, 33, ""};
+const GateProMsgConstant STATUS_PERCENTAGE = {16, 2, ""};
+const GateProMsgConstant PARAMS = {9, 33, ""};
 const std::string WRITE_PARAMS_START = "WP,1:";
 
 
