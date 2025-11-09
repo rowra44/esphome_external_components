@@ -148,6 +148,7 @@ void GatePro::process() {
          if (percentage > 100) {
             percentage -= KNOWN_PERCENTAGE_OFFSET;
          }
+         this->last_position = this->position;
          this->position = (float)percentage / 100;
          return;
       }
@@ -362,6 +363,21 @@ cover::CoverTraits GatePro::get_traits() {
    return traits;
 }
 
+void GatePro::initial_movement() {
+   if (this->position == this->last_position)
+      return;
+   if (this->position > this->last_position) {
+      this->last_operation_ = cover::COVER_OPERATION_IDLE;
+      this->current_operation = cover::COVER_OPERATION_OPENING;
+      return;
+   }
+   if (this->position < this->last_position) {
+      this->last_operation_ = cover::COVER_OPERATION_IDLE;
+      this->current_operation = cover::COVER_OPERATION_CLOSING;
+      return;
+   }
+}
+
 void GatePro::setup() {
    ESP_LOGD(TAG, "Setting up GatePro component..");
    this->last_operation_ = cover::COVER_OPERATION_CLOSING;
@@ -413,7 +429,9 @@ void GatePro::setup() {
             this->set_param(swi.idx, state ? 1 : 0);
          }
       );
-   }   
+   }
+   
+   this->initial_movement();
 }
 
 void GatePro::update() {
