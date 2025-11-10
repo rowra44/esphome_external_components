@@ -144,9 +144,9 @@ void GatePro::process() {
          }
          const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos, STATUS_PERCENTAGE.len);
          int percentage = stoi(percentage_string, 0, 16);
-         // percentage correction with known offset, if necessary
+         // percentage correction with known offset, if opening
          if (percentage > 100) {
-            percentage -= KNOWN_PERCENTAGE_OFFSET;
+            percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
          }
          this->last_position = this->position;
          this->position = (float)percentage / 100;

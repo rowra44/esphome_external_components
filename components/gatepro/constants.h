@@ -123,7 +123,7 @@ const uint8_t DELIMITER_LENGTH = DELIMITER.length();
 const std::string TX_DELIMITER = "\r\n";
 
 // black magic shit. Somehow the percentage of position is offset by this number
-const int KNOWN_PERCENTAGE_OFFSET = 128;
+const int PERCENTAGE_OFFSET_WHILE_OPENING = 128;
 // maximum acceptable difference of target pos / current pos in %
 const float ACCEPTABLE_DIFF = 0.05f;
 // status percentage location
