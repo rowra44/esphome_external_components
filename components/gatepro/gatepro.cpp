@@ -149,7 +149,7 @@ void GatePro::process() {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
             this->current_operation = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
-            
+
          } else if (this->current_msg.substr(13, 2) == "C4") {
             this->current_operation = cover::COVER_OPERATION_CLOSING;
             this->operation_finished = false;
@@ -437,7 +437,7 @@ void GatePro::update() {
       this->queue_gatepro_cmd(GATEPRO_CMD_READ_STATUS);
    }
 
-   //this->correction_after_operation();
+   this->correction_after_operation();
 }
 
 void GatePro::loop() {
