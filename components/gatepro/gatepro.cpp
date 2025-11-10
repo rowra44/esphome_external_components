@@ -361,21 +361,6 @@ cover::CoverTraits GatePro::get_traits() {
    return traits;
 }
 
-void GatePro::initial_movement() {
-   if (this->position == this->last_position)
-      return;
-   if (this->position > this->last_position) {
-      this->last_operation_ = cover::COVER_OPERATION_IDLE;
-      this->current_operation = cover::COVER_OPERATION_OPENING;
-      return;
-   }
-   if (this->position < this->last_position) {
-      this->last_operation_ = cover::COVER_OPERATION_IDLE;
-      this->current_operation = cover::COVER_OPERATION_CLOSING;
-      return;
-   }
-}
-
 void GatePro::setup() {
    ESP_LOGD(TAG, "Setting up GatePro component..");
    this->last_operation_ = cover::COVER_OPERATION_CLOSING;
@@ -446,7 +431,7 @@ void GatePro::update() {
       this->queue_gatepro_cmd(GATEPRO_CMD_READ_STATUS);
    }
 
-   this->correction_after_operation();
+   //this->correction_after_operation();
 }
 
 void GatePro::loop() {
