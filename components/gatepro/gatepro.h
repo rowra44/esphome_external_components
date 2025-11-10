@@ -66,7 +66,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       std::queue<std::function<void()>> paramTaskQueue;
       void publish_params();
       void write_params();
-      void parse_params(std::string msg);
+      void parse_params();
       void set_param(int idx, int val);
 
 
