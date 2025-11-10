@@ -149,7 +149,13 @@ void GatePro::process() {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
             this->current_operation = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
+            
+         } else if (this->current_msg.substr(13, 2) == "C4") {
+            this->current_operation = cover::COVER_OPERATION_CLOSING;
+            this->operation_finished = false;
          }
+
+
          this->last_position = this->position;
          this->position = (float)percentage / 100;
          return;

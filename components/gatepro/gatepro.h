@@ -47,7 +47,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       int after_tick = AFTER_TICK_MAX;
       float target_position_;
       float position_;
-      float last_position = 0;
+      float last_position = -1;
       bool operation_finished;
       cover::CoverCall* last_call_;
       cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
