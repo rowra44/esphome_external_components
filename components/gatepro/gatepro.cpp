@@ -99,15 +99,16 @@ void GatePro::start_direction_(cover::CoverOperation dir) {
          this->queue_gatepro_cmd(GATEPRO_CMD_STOP);
          break;
       case cover::COVER_OPERATION_OPENING:
-         if (this->current_operation != cover::COVER_OPERATION_IDLE) {
+         // REVERT!!
+         /*if (this->current_operation != cover::COVER_OPERATION_IDLE) {
             this->queue_gatepro_cmd(GATEPRO_CMD_STOP);
-         }
+         }*/
          this->queue_gatepro_cmd(GATEPRO_CMD_OPEN);
          break;
       case cover::COVER_OPERATION_CLOSING:
-         if (this->current_operation != cover::COVER_OPERATION_IDLE) {
+         /*if (this->current_operation != cover::COVER_OPERATION_IDLE) {
             this->queue_gatepro_cmd(GATEPRO_CMD_STOP);
-         }
+         }*/
          this->queue_gatepro_cmd(GATEPRO_CMD_CLOSE);
          break;
       default:
