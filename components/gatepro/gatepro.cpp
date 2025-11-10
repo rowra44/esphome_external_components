@@ -182,16 +182,20 @@ void GatePro::process() {
             this->current_operation = cover::COVER_OPERATION_OPENING;
             this->last_operation_ = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
-
+            if (percentage == 100) {
+               percentage = 99;
+            }
          } else if (this->is_moving()) {
             this->current_operation = cover::COVER_OPERATION_CLOSING;
             this->last_operation_ = cover::COVER_OPERATION_CLOSING;
             this->operation_finished = false;
+            if (percentage == 0){
+               percentage = 1;
+            }
          }
          /*
             End of startup movement identification logic
          */
-
          this->position = (float)percentage / 100;
          return;
       }
