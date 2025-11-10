@@ -258,16 +258,33 @@ void GatePro::process() {
    * in the end, we simply build & queue the WP (write params) msg,
      that eventually gets sent to the device, and also update our sensors
 */
-void GatePro::set_param(int idx, int val) {
-   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
-   this->param_no_pub = true;
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+void GatePro::publish_params() {
+   if (!this->param_no_pub) {
+      // Numbers
+      for (auto swi : this->sliders_with_indices) {
+         swi.slider->publish_state(this->params[swi.idx]);
+      }
+      // Switches
+      for (auto swi : this->switches_with_indices) {
+         swi.switch_->publish_state(this->params[swi.idx]);
+      }
+   }
+}
 
-   this->paramTaskQueue.push(
-      [this, idx, val](){
-         this->params[idx] = val;
-         this->write_params();
-      });
+void GatePro::write_params() {
+   this->params_cmd = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
+   for (size_t i = 0; i < this->params.size(); i++) {
+      this->params_cmd += to_string(this->params[i]);
+      if (i != this->params.size() - 1) {
+         this->params_cmd += PARAMS_SEPARATOR;
+      }
+   }
+
+   ESP_LOGD(TAG, "Built params: %s", this->params_cmd);
+   this->tx_queue.push(this->params_cmd);
+
+   // read params again just to update frontend and make sure :)
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
 }
 
 void GatePro::parse_params() {
@@ -294,34 +311,19 @@ void GatePro::parse_params() {
    }
 }
 
-void GatePro::write_params() {
-   this->params_cmd = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
-   for (size_t i = 0; i < this->params.size(); i++) {
-      this->params_cmd += to_string(this->params[i]);
-      if (i != this->params.size() - 1) {
-         this->params_cmd += PARAMS_SEPARATOR;
-      }
-   }
-
-   ESP_LOGD(TAG, "Built params: %s", this->params_cmd);
-   this->tx_queue.push(this->params_cmd);
-
-   // read params again just to update frontend and make sure :)
+void GatePro::set_param(int idx, int val) {
+   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
+   this->param_no_pub = true;
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+
+   this->paramTaskQueue.push(
+      [this, idx, val](){
+         this->params[idx] = val;
+         this->write_params();
+      });
 }
 
-void GatePro::publish_params() {
-   if (!this->param_no_pub) {
-      // Numbers
-      for (auto swi : this->sliders_with_indices) {
-         swi.slider->publish_state(this->params[swi.idx]);
-      }
-      // Switches
-      for (auto swi : this->switches_with_indices) {
-         swi.switch_->publish_state(this->params[swi.idx]);
-      }
-   }
-}
+
 
 ////////////////////////////////////////////
 // Sensor logic

@@ -64,10 +64,10 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       char params_cmd[50];
       bool param_no_pub = false;
       std::queue<std::function<void()>> paramTaskQueue;
-      void set_param(int idx, int val);
-      void parse_params(std::string msg);
-      void write_params();
       void publish_params();
+      void write_params();
+      void parse_params(std::string msg);
+      void set_param(int idx, int val);
 
 
       // sensor logic
