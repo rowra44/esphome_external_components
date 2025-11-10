@@ -210,6 +210,7 @@ void GatePro::process() {
                this->operation_finished = true;
                this->target_position_ = 0.0f;
                this->current_operation = cover::COVER_OPERATION_IDLE;
+               this->position = cover::COVER_OPEN;
                return;
             
             case MOTOR_EVENT_CLOSING:
@@ -222,6 +223,7 @@ void GatePro::process() {
                this->operation_finished = true;
                this->target_position_ = 0.0f;
                this->current_operation = cover::COVER_OPERATION_IDLE;
+               this->position = cover::COVER_CLOSED;
                return;
                
             case MOTOR_EVENT_STOPPED:
