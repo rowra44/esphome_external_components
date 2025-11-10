@@ -31,6 +31,18 @@ GateProMsgType GatePro::identify_current_msg_type(
    return GATEPRO_MSG_UNKNOWN;
 }
 
+int GatePro::get_position_percentage() {
+   const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos,
+                                                                  STATUS_PERCENTAGE.len);
+   return stoi(percentage_string, 0, 16);
+}
+
+bool GatePro::is_moving() {
+   return this->current_msg.substr(STATUS_OP_MOVING.pos,
+                                   STATUS_OP_MOVING.len) ==
+          STATUS_OP_MOVING.match;
+}
+
 std::string GatePro::convert(uint8_t* bytes, size_t len) {
 	std::string res;
 	char buf[5];
@@ -131,7 +143,6 @@ void GatePro::process() {
       return;
    }
    GateProMsgType current_msg_type = this->identify_current_msg_type();
-   std::string msg = this->current_msg; ////// REMOVE
    switch (current_msg_type) {
       case GATEPRO_MSG_UNKNOWN:
          ESP_LOGD(TAG, "Unkown message type");
@@ -142,29 +153,37 @@ void GatePro::process() {
          if (this->operation_finished) {
             return;
          }
-         const std::string percentage_string = this->current_msg.substr(STATUS_PERCENTAGE.pos, STATUS_PERCENTAGE.len);
-         int percentage = stoi(percentage_string, 0, 16);
-         // percentage correction with known offset, if opening
+
+         int percentage = this->get_position_percentage();
+         /* The following logic is only necessary for startup. We have to somehow be able
+            to identify current state. The only known possible method is this logic:
+            * if percentage is above 100, it's offset by the constant that's applied when opening;
+                  => this means it's currently opening
+            * if percentage is normal [0, 100], but the 3rd token "in movement";
+                  => this means it's currently closing
+            * otherwise just leave as is
+         */
          if (percentage > 100) {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
             this->current_operation = cover::COVER_OPERATION_OPENING;
             this->last_operation_ = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
 
-         } else if (this->current_msg.substr(13, 2) == "C4") {
+         } else if (this->is_moving()) {
             this->current_operation = cover::COVER_OPERATION_CLOSING;
             this->last_operation_ = cover::COVER_OPERATION_CLOSING;
             this->operation_finished = false;
          }
+         /*
+            End of startup movement identification logic
+         */
 
-
-         this->last_position = this->position;
          this->position = (float)percentage / 100;
          return;
       }
 
       case GATEPRO_MSG_ACK_RP:
-         this->parse_params(this->current_msg);
+         this->parse_params();
          return;
 
       case GATEPRO_MSG_MOTOR_EVENT: {
@@ -223,35 +242,72 @@ void GatePro::process() {
 ////////////////////////////////////////////
 // Parameters
 ////////////////////////////////////////////
-void GatePro::parse_params(std::string msg) {
+/* Working with params is really complicated:
+   * there's no known & working method of changing a single param,
+     => always have to write, and thus know, all other params back too
+   * at first, we have no idea of params and whether they're changed or not
+     so we start with reading them out
+   * at the same time, we create a task in a task queue that
+     "in the future" (after we will have read the current params):
+         * overwrites the requested param index with requested value
+         * initiates writing this modified param list back to the device
+   * once the devices replies with the current params list, the process
+     identifies this as a RP (read param) msg type, and executes parsing
+     and thus filling up our internal (current) param list
+   * and finally, executes the previously mentioned tasks from the queue
+   * in the end, we simply build & queue the WP (write params) msg,
+     that eventually gets sent to the device, and also update our sensors
+*/
+void GatePro::set_param(int idx, int val) {
+   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
+   this->param_no_pub = true;
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
+
+   this->paramTaskQueue.push(
+      [this, idx, val](){
+         this->params[idx] = val;
+         this->write_params();
+      });
+}
+
+void GatePro::parse_params() {
    this->params.clear();
-   // example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
-   //                   ^-9  
-   msg = msg.substr(PARAMS.pos, PARAMS.len);
+   msg = this->current_msg.substr(PARAMS.pos, PARAMS.len);
    size_t start = 0;
    size_t end;
 
-   // efficiently split on ','
-   while((end = msg.find(',', start)) != std::string::npos) {
+   // efficiently split on separator
+   while((end = msg.find(PARAMS_SEPARATOR, start)) != std::string::npos) {
       this->params.push_back(stoi(msg.substr(start, end - start)));
       start = end + 1;
    }
    this->params.push_back(stoi(msg.substr(start)));
 
-   ESP_LOGD(TAG, "Parsed current params:", this->params.size());
-   for (size_t i = 0; i < this->params.size(); ++i) {
-      ESP_LOGD(TAG, "  [%zu] = %d", i, this->params[i]);
-   }
-
    this->publish_params();
 
-   // write new params if any task is up
+   /* This is where magic happens  */
    while (!this->paramTaskQueue.empty()) {
       auto task = this->paramTaskQueue.front();
       this->paramTaskQueue.pop();
       task();
       this->param_no_pub = false;
    }
+}
+
+void GatePro::write_params() {
+   this->params_cmd = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
+   for (size_t i = 0; i < this->params.size(); i++) {
+      this->params_cmd += to_string(this->params[i]);
+      if (i != this->params.size() - 1) {
+         this->params_cmd += PARAMS_SEPARATOR;
+      }
+   }
+
+   ESP_LOGD(TAG, "Built params: %s", this->params_cmd);
+   this->tx_queue.push(this->params_cmd);
+
+   // read params again just to update frontend and make sure :)
+   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
 }
 
 void GatePro::publish_params() {
@@ -265,36 +321,6 @@ void GatePro::publish_params() {
          swi.switch_->publish_state(this->params[swi.idx]);
       }
    }
-}
-
-void GatePro::write_params() {
-   std::string msg = GateProCmdMapping.at(GATEPRO_CMD_WRITE_PARAMS);
-   for (size_t i = 0; i < this->params.size(); i++) {
-      msg += to_string(this->params[i]);
-      if (i != this->params.size() -1) {
-         msg += ",";
-      }
-   }
-   //msg += ";src=P00287D7";
-   std::strcpy(this->params_cmd, msg.c_str());
-   ESP_LOGD(TAG, "BUILT PARAMS: %s", this->params_cmd);
-   this->tx_queue.push(this->params_cmd);
-
-   // read params again just to update frontend and make sure :)
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-}
-
-void GatePro::set_param(int idx, int val) {
-   ESP_LOGD(TAG, "Initiating setting param %d to %d", idx, val);
-   this->param_no_pub = true;
-   this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-
-   this->paramTaskQueue.push(
-      [this, idx, val](){
-         ESP_LOGD(TAG, "Initiating set speed");
-         this->params[idx] = val;
-         this->write_params();
-      });
 }
 
 ////////////////////////////////////////////

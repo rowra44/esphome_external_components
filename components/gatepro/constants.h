@@ -122,16 +122,21 @@ const std::string DELIMITER = "\\r\\n";
 const uint8_t DELIMITER_LENGTH = DELIMITER.length();
 const std::string TX_DELIMITER = "\r\n";
 
-// black magic shit. Somehow the percentage of position is offset by this number
-const int PERCENTAGE_OFFSET_WHILE_OPENING = 128;
 // maximum acceptable difference of target pos / current pos in %
 const float ACCEPTABLE_DIFF = 0.05f;
+// ticks to update after an operation
+const int AFTER_TICK_MAX = 10;
 // status percentage location
       // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
       //                          ^- percentage in hex
 const GateProMsgConstant STATUS_PERCENTAGE = {16, 2, ""};
+// status: if currently moving, 3rd token is C4
+const GateProMsgConstant STATUS_OP_MOVING = {13, 2, "C4"};
+// percentage is offset by +128 when opening, so e.g. 50 => 50+128=178
+const int PERCENTAGE_OFFSET_WHILE_OPENING = 128;
+// example: ACK RP,1:1,0,0,1,2,2,0,0,0,3,0,0,3,0,0,0,0\r\n"
+//                   ^-9  
 const GateProMsgConstant PARAMS = {9, 33, ""};
-// ticks to update after an operation
-const int AFTER_TICK_MAX = 10;
+const std::string PARAMS_SEPARATOR = ",";
 
 }}

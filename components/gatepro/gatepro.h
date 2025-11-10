@@ -41,13 +41,14 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       std::string current_msg;
       bool read_msg();
       GateProMsgType identify_current_msg_type(std::map<GateProMsgType, const GateProMsgConstant>);
+      int get_position_percentage();
+      bool is_moving();
       std::string convert(uint8_t*, size_t);
 
       // device logic
       int after_tick = AFTER_TICK_MAX;
       float target_position_;
       float position_;
-      float last_position = -1;
       bool operation_finished;
       cover::CoverCall* last_call_;
       cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
@@ -63,10 +64,11 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       char params_cmd[50];
       bool param_no_pub = false;
       std::queue<std::function<void()>> paramTaskQueue;
-      void parse_params(std::string msg);
-      void publish_params();
-      void write_params();
       void set_param(int idx, int val);
+      void parse_params(std::string msg);
+      void write_params();
+      void publish_params();
+
 
       // sensor logic
       void publish();
