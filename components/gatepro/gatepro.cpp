@@ -290,7 +290,7 @@ void GatePro::write_params() {
 
 void GatePro::parse_params() {
    this->params.clear();
-   msg = this->current_msg.substr(PARAMS.pos, PARAMS.len);
+   std::string msg = this->current_msg.substr(PARAMS.pos, PARAMS.len);
    size_t start = 0;
    size_t end;
 
