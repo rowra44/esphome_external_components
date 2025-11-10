@@ -120,18 +120,25 @@ void GatePro::stop_at_target_position() {
    }
 }
 
+/* The gate physically doesn't always move literally from 0% to 100%.
+   It happens that it stops at around 0-3% / 97-100%, a small deviation,
+   while physically / by naked eye it's completely normal looking, we
+   have to correct these end position values, if necessary
+*/
 void GatePro::correction_after_operation() {
-   if (this->operation_finished) {// || this->startup) {
+   if (this->operation_finished || this->startup) {
       if (this->current_operation == cover::COVER_OPERATION_IDLE &&
          this->last_operation_ == cover::COVER_OPERATION_CLOSING &&
-         this->position != cover::COVER_CLOSED) {
+         this->position != cover::COVER_CLOSED &&
+         abs(this->position - cover::COVER_CLOSED) < ACCEPTABLE_DIFF / 2) {
          this->position = cover::COVER_CLOSED;
          return;
       }
  
       if (this->current_operation == cover::COVER_OPERATION_IDLE &&
          this->last_operation_ == cover::COVER_OPERATION_OPENING &&
-         this->position != cover::COVER_OPEN) {
+         this->position != cover::COVER_OPEN &&
+         abs(this->position - cover::COVER_OPEN) < ACCEPTABLE_DIFF / 2) {
          this->position = cover::COVER_OPEN;
       }
    }
