@@ -279,9 +279,10 @@ void GatePro::write_params() {
          this->params_cmd += PARAMS_SEPARATOR;
       }
    }
+   this->params_cmd += TX_DELIMITER;
 
    ESP_LOGD(TAG, "Built params: %s", this->params_cmd);
-   this->tx_queue.push(this->params_cmd);
+   this->tx_queue.push(this->params_cmd.c_str());
 
    // read params again just to update frontend and make sure :)
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
