@@ -147,6 +147,8 @@ void GatePro::process() {
          // percentage correction with known offset, if opening
          if (percentage > 100) {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
+            this->current_operation = cover::COVER_OPERATION_OPENING;
+            this->operation_finished = false;
          }
          this->last_position = this->position;
          this->position = (float)percentage / 100;
