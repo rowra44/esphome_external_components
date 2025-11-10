@@ -169,39 +169,30 @@ void GatePro::process() {
          }
 
          int percentage = this->get_position_percentage();
-         /* The following logic is necessary for startup and/or for a weird edge use-case.
-            Startup: We have to somehow be able to identify current state. The only known
-            possible method is this logic:
+         /* The following logic is necessary for startup: We have to somehow be able to identify
+            the current state. The only known possible method is this logic:
             * if percentage is above 100, it's offset by the constant that's applied when opening;
                   => this means it's currently opening
             * if percentage is normal [0, 100], but the 3rd token "in movement";
                   => this means it's currently closing
             * otherwise just leave as is
-            Edge use-case: If an opposing direction operation is initiated while still in motion,
-            the gate (physically) will crawl rather slowly, unlike normal operation. However, the
-            RS calls report percentages similar to normal operation, and thus we end up with
-            0% / 100% way before actually being closed / opened. To prevent this, we "glue"
-            the percentage to the closest end-pos value (1% / 99%). This is the best we can do
-            with missing actual data..
          */
          if (percentage > 100) {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
             this->current_operation = cover::COVER_OPERATION_OPENING;
             this->last_operation_ = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
-            /*if (percentage == 100) {
-               percentage = 99;
-            }*/
          } else if (this->is_moving()) {
             this->current_operation = cover::COVER_OPERATION_CLOSING;
             this->last_operation_ = cover::COVER_OPERATION_CLOSING;
             this->operation_finished = false;
-            /*if (percentage == 0){
-               percentage = 1;
-            }*/
          }
-         /*
-            End of startup movement identification & edge case logic
+         /* Edge use-case: If an opposing direction operation is initiated while still in motion,
+            the gate (physically) will crawl rather slowly, unlike normal operation. However, the
+            RS calls report percentages similar to normal operation, and thus we end up with
+            0% / 100% way before actually being closed / opened. This also causes the componenet to be 
+            stuck in opening/closing somehow. To prevent this, we clamp the percentage to the closest
+            end-pos value (1% / 99%). This is the best we can do with missing actual data..
          */
          percentage = clamp(percentage, 1, 99);
          this->position = (float)percentage / 100;
