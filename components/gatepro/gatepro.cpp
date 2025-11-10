@@ -148,10 +148,12 @@ void GatePro::process() {
          if (percentage > 100) {
             percentage -= PERCENTAGE_OFFSET_WHILE_OPENING;
             this->current_operation = cover::COVER_OPERATION_OPENING;
+            this->last_operation_ = cover::COVER_OPERATION_OPENING;
             this->operation_finished = false;
 
          } else if (this->current_msg.substr(13, 2) == "C4") {
             this->current_operation = cover::COVER_OPERATION_CLOSING;
+            this->last_operation_ = cover::COVER_OPERATION_CLOSING;
             this->operation_finished = false;
          }
 
