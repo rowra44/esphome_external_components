@@ -121,7 +121,7 @@ void GatePro::stop_at_target_position() {
 }
 
 void GatePro::correction_after_operation() {
-   if (this->operation_finished || this->startup) {
+   if (this->operation_finished) {// || this->startup) {
       if (this->current_operation == cover::COVER_OPERATION_IDLE &&
          this->last_operation_ == cover::COVER_OPERATION_CLOSING &&
          this->position != cover::COVER_CLOSED) {
