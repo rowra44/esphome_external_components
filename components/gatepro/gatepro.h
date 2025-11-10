@@ -50,6 +50,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       float target_position_;
       float position_;
       bool operation_finished;
+      bool startup;
       cover::CoverCall* last_call_;
       cover::CoverOperation last_operation_{cover::COVER_OPERATION_OPENING};
       void queue_gatepro_cmd(GateProCmd cmd);

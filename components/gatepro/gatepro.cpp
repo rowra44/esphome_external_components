@@ -121,7 +121,7 @@ void GatePro::stop_at_target_position() {
 }
 
 void GatePro::correction_after_operation() {
-   if (this->operation_finished) {
+   if (this->operation_finished || this->startup) {
       if (this->current_operation == cover::COVER_OPERATION_IDLE &&
          this->last_operation_ == cover::COVER_OPERATION_CLOSING &&
          this->position != cover::COVER_CLOSED) {
@@ -402,6 +402,7 @@ void GatePro::setup() {
    this->last_operation_ = cover::COVER_OPERATION_CLOSING;
    this->current_operation = cover::COVER_OPERATION_IDLE;
    this->operation_finished = false;
+   this->startup = true;
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_STATUS);
    this->target_position_ = 0.0f;
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
