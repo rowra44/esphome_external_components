@@ -279,7 +279,6 @@ void GatePro::write_params() {
          this->params_cmd += PARAMS_SEPARATOR;
       }
    }
-   this->params_cmd += TX_DELIMITER;
 
    ESP_LOGD(TAG, "Built params: %s", this->params_cmd.c_str());
    this->tx_queue.push(this->params_cmd.c_str());

@@ -125,7 +125,7 @@ const std::string TX_DELIMITER = "\r\n";
 // maximum acceptable difference of target pos / current pos in %
 const float ACCEPTABLE_DIFF = 0.05f;
 // ticks to update after an operation
-const int AFTER_TICK_MAX = 10;
+const int AFTER_TICK_MAX = 5;
 // status percentage location
       // example: ACK RS:00,80,C4,C6,3E,16,FF,FF,FF\r\n
       //                          ^- percentage in hex
