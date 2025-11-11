@@ -108,12 +108,12 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       std::vector<SwitchWithIdx> switches_with_indices;
 
       struct SelectWithIdxOpts{
-         switch_::Switch *switch_;
+         select::Select *select;
          u_int idx;
          std::vector<std::string> options;
          std::vector<int> values;
-         SelectWithIdxOpts(switch_::Switch *switch_, u_int idx, std::vector<std::string> options, std::vector<int> values) :
-                           switch_(switch_), idx(idx), options(options), values(values) {};
+         SelectWithIdxOpts(select::Select *select, u_int idx, std::vector<std::string> options, std::vector<int> values) :
+                           select(select), idx(idx), options(options), values(values) {};
       };
       std::vector<SelectWithIdxOpts> select_with_data;
 };
