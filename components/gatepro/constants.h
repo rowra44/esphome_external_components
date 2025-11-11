@@ -70,6 +70,8 @@ enum GateProMsgType : uint8_t {
    MOTOR_EVENT_AUTOCLOSING, // defined for possible future usage, but currently unused
    MOTOR_EVENT_CLOSED,
    MOTOR_EVENT_STOPPED,
+   MOTOR_EVENT_PED_OPENING, // for future reference, unused for now
+   MOTOR_EVENT_PED_OPENED   // ^- same
 };
 
 struct GateProMsgConstant {
@@ -97,6 +99,8 @@ const std::map<GateProMsgType, const GateProMsgConstant> GateProMsgTypeMapping =
    {GATEPRO_MSG_ACK_FULL_OPEN, {0, 13, "ACK FULL OPEN"}},
    // ACK STOP\r\n
    {GATEPRO_MSG_ACK_STOP, {0, 8, "ACK STOP"}},
+   // ACK PED OPEN\r\n
+   {GATEPRO_MSG_ACK_PED_OPEN, {0, 12,"ACK PED OPEN"}},
    // $V1PKF1
    {GATPERO_MSG_FINISHED, {0, 7, "$V1PKF1"}}
 };
@@ -114,6 +118,10 @@ const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
    {MOTOR_EVENT_CLOSED, {11, 6, "Closed"}},
    // $V1PKF0,??,Stopped;src=0001\r\n
    {MOTOR_EVENT_STOPPED, {11, 7, "Stopped"}},
+   // $V1PKF0,??,PedOpening;src=P00287D7\r\n
+   {MOTOR_EVENT_OPENING, {11, 10, "PedOpening"}}, // ped opening is just the same as opening for our logic
+   // $V1PKF0,??,PedOpened;src=P00287D7\r\n
+   {MOTOR_EVENT_OPENED, {11, 9, "PedOpened"}}, // ped opening is just the same as opening for our logic
 };
 
 // necessary for comfortable processing & to avoid confusion
