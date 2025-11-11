@@ -33,7 +33,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       }
 
       void set_select(select::Select *sel, std::vector<std::string> *options, std::vector<int> *values) {
-
+         select_with_data.push_back(sel, options, values);
       }
 
       void setup() override;
@@ -106,6 +106,14 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
          SwitchWithIdx(u_int idx, switch_::Switch *switch_) : idx(idx), switch_(switch_) {};
       };
       std::vector<SwitchWithIdx> switches_with_indices;
+
+      struct SelectWithIdxOpts{
+         switch_::Switch *switch_;
+         u_int idx;
+         std::vector<std::string> options;
+         std::vector<int> values;
+      };
+      std::vector<SelectWithIdxOpts> select_with_data;
 };
 
 }  // namespace gatepro
