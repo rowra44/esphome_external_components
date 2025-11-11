@@ -289,7 +289,7 @@ void GatePro::publish_params() {
       }
       // Selects
       for (auto swd : this->select_with_data) {
-         swd.select->publish_state(swd.values[this->params[swd.idx]]);
+         swd.select->publish_state(swd.options[this->params[swd.idx]]);
       }
    }
 }
