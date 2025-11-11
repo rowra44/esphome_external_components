@@ -36,11 +36,11 @@ BUTTON_SCHEMA = select.select_schema(GateProButton).extend(
 )
 
 # text sensor
-GateProButton = gatepro_ns.class_(
-    "GateProButton", button.Button, cg.Component
+GateProTextSensor = gatepro_ns.class_(
+    "GateProTextSensor", text_sensor.TextSensor, cg.Component
 )
-TEXT_SENSOR_SCHEMA = text_sensor.text_sensor_schema(text_sensor.TextSensor).extend(
-    {cv.GenerateID(): cv.declare_id(text_sensor.TextSensor)}
+TEXT_SENSOR_SCHEMA = text_sensor.text_sensor_schema(GateProTextSensor).extend(
+    {cv.GenerateID(): cv.declare_id(GateProTextSensor)}
 )
 
 CONF_OPERATIONAL_SPEED = "operational_speed"
