@@ -8,7 +8,7 @@ namespace gatepro {
 
 class GateProButton : public button::Button, public Component {
    protected:
-      void press_action() override { this->publish_state(); }
+      void press_action() override { }
 };
 
 }  // namespace gatepro
