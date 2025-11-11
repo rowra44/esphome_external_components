@@ -143,7 +143,7 @@ async def to_code(config):
          cg.add(var.set_switch(v, sw))
 
    # buttons
-   for k, v in BUTTONS.items():
+    for k, v in BUTTONS.items():
       if k in config:
          conf = config[k]
          btn = cg.new_Pvariable(conf[CONF_ID])
