@@ -69,6 +69,12 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
 # name - command name list
 BUTTONS = {
    "params": "GATEPRO_CMD_READ_PARAMS",
+   "status": "GATEPRO_CMD_READ_STATUS",
+   "remote_learn": "GATEPRO_CMD_REMOTE_LEARN",
+   "ped_open": "GATEPRO_CMD_PED_OPEN",
+   "read_fn": "GATEPRO_CMD_READ_FUNCTION",
+   "fallback_open": "GATEPRO_CMD_OPEN",
+   "fallback_close": "GATEPRO_CMD_CLOSE"
 }
 for k, v in BUTTONS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
