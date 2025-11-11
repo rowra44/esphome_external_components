@@ -480,6 +480,10 @@ void GatePro::setup() {
    for (auto swd : this->select_with_data) {
       swd.select->add_on_state_callback(
          [this, swd](const std::string &value, size_t index) {
+            if (this->params[swd.idx] == swd.values[index]) {
+               return;
+            }
+            this->set_param(swd.idx, swd.values[index]);
             ESP_LOGD(TAG, "SEL: %s  %d", value.c_str(), index);
          }
       );
