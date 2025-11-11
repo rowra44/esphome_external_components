@@ -19,10 +19,6 @@ namespace gatepro {
 
 class GatePro : public cover::Cover, public PollingComponent, public uart::UARTDevice {
    public:
-      void set_btn_learn(esphome::button::Button *btn) { btn_learn = btn; }
-      void set_btn_params_od(esphome::button::Button *btn) { btn_params_od = btn; }
-      void set_btn_remote_learn(esphome::button::Button *btn) { btn_remote_learn = btn; }
-      void set_btn_read_status(esphome::button::Button *btn) { btn_read_status = btn; }
       void set_txt_devinfo(esphome::text_sensor::TextSensor *txt) { txt_devinfo = txt; }
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
       void set_switch(u_int param_idx, switch_::Switch *switch_) {

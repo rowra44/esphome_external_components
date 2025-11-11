@@ -54,12 +54,6 @@ CONF_LEARN_STATUS = "learn_status"
 
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
-        # BUTTON controllers
-        #cv.GenerateID(): cv.declare_id(GatePro),
-        #cv.Optional(CONF_LEARN): cv.use_id(button.Button),
-        #cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
-        #cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
-        #cv.Optional(CONF_READ_STATUS): cv.use_id(button.Button),
         # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
@@ -68,13 +62,9 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
 # BUTTON controllers mapping
 # name - command name list
 BUTTONS = {
-   "params": "GATEPRO_CMD_READ_PARAMS",
-   "status": "GATEPRO_CMD_READ_STATUS",
    "remote_learn": "GATEPRO_CMD_REMOTE_LEARN",
    "ped_open": "GATEPRO_CMD_PED_OPEN",
-   "read_fn": "GATEPRO_CMD_READ_FUNCTION",
-   "fallback_open": "GATEPRO_CMD_OPEN",
-   "fallback_close": "GATEPRO_CMD_CLOSE"
+   "status": "GATEPRO_CMD_READ_STATUS",
 }
 for k, v in BUTTONS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
@@ -174,16 +164,3 @@ async def to_code(config):
     if CONF_LEARN_STATUS in config:
       txt = await cg.get_variable(config[CONF_LEARN_STATUS])
       cg.add(var.set_txt_learn_status(txt))
-    # buttons
-    #if CONF_LEARN in config:
-    #    btn = await cg.get_variable(config[CONF_LEARN])
-    #    cg.add(var.set_btn_learn(btn))
-    #if CONF_PARAMS_OD in config:
-    #    btn = await cg.get_variable(config[CONF_PARAMS_OD])
-    #    cg.add(var.set_btn_params_od(btn))
-    #if CONF_REMOTE_LEARN in config:
-    #    btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
-    #    cg.add(var.set_btn_remote_learn(btn))
-    #if CONF_READ_STATUS in config:
-    #    btn = await cg.get_variable(config[CONF_READ_STATUS])
-    #    cg.add(var.set_btn_read_status(btn))

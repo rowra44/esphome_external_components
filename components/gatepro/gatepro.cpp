@@ -469,7 +469,6 @@ void GatePro::setup() {
          }
       );
    }
-
 }
 
 void GatePro::update() {
