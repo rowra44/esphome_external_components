@@ -8,7 +8,7 @@ namespace gatepro {
 
 class GateProButton : public switch_::Switch, public Component {
    protected:
-      void press_action() override { ESP_LOGD("nyeh", "pressed"); }
+      void press_action() override { this->publish_state(); }
 };
 
 }  // namespace gatepro
