@@ -112,7 +112,7 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
          u_int idx;
          std::vector<std::string> options;
          std::vector<int> values;
-         SelectWithIdxOpts(switch_::Switch *switch, u_int idx, std::vector<std::string> options, std::vector<int> values) :
+         SelectWithIdxOpts(switch_::Switch *switch_, u_int idx, std::vector<std::string> options, std::vector<int> values) :
                            switch_(switch_), idx(idx), options(options), values(values) {};
       };
       std::vector<SelectWithIdxOpts> select_with_data;
