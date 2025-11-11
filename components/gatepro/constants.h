@@ -22,7 +22,7 @@ enum GateProCmd : uint8_t {
    GATEPRO_CMD_READ_FUNCTION, // untested
 };
 
-const std::map<const char*, GateProCmd> GateProUIBtnMapping = {
+const std::map<std::string, GateProCmd> GateProUIBtnMapping = {
    {"GATEPRO_CMD_OPEN", GATEPRO_CMD_OPEN},
    {"GATEPRO_CMD_CLOSE", GATEPRO_CMD_CLOSE},
    {"GATEPRO_CMD_READ_STATUS", GATEPRO_CMD_READ_STATUS},
