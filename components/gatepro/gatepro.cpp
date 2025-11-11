@@ -467,7 +467,7 @@ void GatePro::setup() {
 
    // Buttons
    for (auto btn : this->buttons_with_cmds) {
-      btn.button->add_on_press_callback(
+      btn.button->press_action(
          [this, btn]() {
             this->queue_gatepro_cmd(btn.cmd);
          }
