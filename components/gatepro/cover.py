@@ -58,6 +58,7 @@ CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
         # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): TEXT_SENSOR_SCHEMA,
+        cv.Optional(CONF_LEARN_STATUS): TEXT_SENSOR_SCHEMA,
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 # BUTTON controllers mapping
@@ -165,4 +166,11 @@ async def to_code(config):
       await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
       cg.add(var.set_txt_devinfo(ts))
+
+    if CONF_LEARN_STATUS in config:
+      conf = config[CONF_LEARN_STATUS]
+      ts = await text_sensor.new_text_sensor(conf)
+      await cg.register_component(ts, conf)
+      await text_sensor.register_text_sensor(ts, conf)
+      cg.add(var.set_txt_learn_status(ts))
 
