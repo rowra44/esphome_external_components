@@ -89,10 +89,20 @@ for k, v in SWITCHES.items():
 # SELECT controllers mapping
 # name - {parameter list index, available options' list}
 SELECTS = {
+   "opening_dir": {
+      "idx": 0,
+      "options": ["left", "right"],
+      "values": [0, 1]
+   },
    "auto_close": {
       "idx": 1,
       "options": ["off", "5s", "15s", "30s", "45s", "60s", "80s", "120s", "180s"],
       "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+   },
+   "sec_dev_method": {
+      "idx": 2,
+      "options": ["default", "different #1", "different #2"],
+      "values": [0, 1, 2]
    },
    "operational_speed": {
       "idx": 3,
@@ -118,13 +128,42 @@ SELECTS = {
       "idx": 7,
       "options": ["3s", "6s", "9s", "12s", "15s", "18s"],
       "values": [0, 1, 2, 3, 4, 5]
-   }   
+   },
+   "flashing_light": {
+      "idx": 8,
+      "options": ["on movement", "3s before movement"],
+      "values": [0, 1]
+   },
+   "overload_action": {
+      "idx": 9,
+      "options": ["stop", "reverse 1s", "reverse 3s", "reverse completely"],
+      "values": [0, 1, 2, 3]
+   },
+   "remote_btn_open": {
+      "idx:" 10,
+      "options": ["A", "B", "C", "D"],
+      "values": [0, 1, 2, 3]
+   },
+   "remote_btn_ped": {
+      "idx": 11,
+      "options": ["off", "A", "B", "C", "D"],
+      "values": [0, 1, 2, 3, 4]
+   },
+   "remote_btn_extdev": {
+      "idx": 12,
+      "options": ["off", "A", "B", "C", "D"],
+      "values": [0, 1, 2, 3, 4]
+   },
+   "op_method": {
+      "idx": 16,
+      "options": ["open/stop/close/stop", "open/stop/close"],
+      "values": [0, 1]
+   }
 }
 for k, v in SELECTS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
       cv.Optional(k): SELECT_SCHEMA
    })
-
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
