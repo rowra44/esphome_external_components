@@ -211,12 +211,14 @@ void GatePro::process() {
                return;
 
             case MOTOR_EVENT_OPENING:
+            case MOTOR_EVENT_PED_OPENING:
                this->operation_finished = false;
                this->current_operation = cover::COVER_OPERATION_OPENING;
                this->last_operation_ = cover::COVER_OPERATION_OPENING;
                return;
             
             case MOTOR_EVENT_OPENED:
+            case MOTOR_EVENT_PED_OPENED:
                this->operation_finished = true;
                this->target_position_ = 0.0f;
                this->current_operation = cover::COVER_OPERATION_IDLE;
@@ -224,6 +226,7 @@ void GatePro::process() {
                return;
             
             case MOTOR_EVENT_CLOSING:
+            case MOTOR_EVENT_AUTOCLOSING:
                this->operation_finished = false;
                this->current_operation = cover::COVER_OPERATION_CLOSING;
                this->last_operation_ = cover::COVER_OPERATION_CLOSING;
@@ -428,31 +431,7 @@ void GatePro::setup() {
    this->queue_gatepro_cmd(GATEPRO_CMD_DEVINFO);
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_LEARN_STATUS);
 
-   // set up frontend controllers
-   /*if (btn_learn) {
-      this->btn_learn->add_on_press_callback([this](){
-         this->queue_gatepro_cmd(GATEPRO_CMD_LEARN);
-      });
-   }
-
-   if (btn_params_od) {
-      this->btn_params_od->add_on_press_callback([this](){
-         this->queue_gatepro_cmd(GATEPRO_CMD_READ_PARAMS);
-      });
-   }
-
-   if (btn_remote_learn) {
-      this->btn_remote_learn->add_on_press_callback([this](){
-         this->queue_gatepro_cmd(GATEPRO_CMD_REMOTE_LEARN);
-      });
-   }
-
-   if (btn_read_status) {
-      this->btn_read_status->add_on_press_callback([this](){
-         this->queue_gatepro_cmd(GATEPRO_CMD_READ_STATUS);
-      });
-   }*/
-   
+   // set up frontend controllers  
    // Switches
    for (auto swi : this->switches_with_indices) {
       swi.switch_->add_on_state_callback(

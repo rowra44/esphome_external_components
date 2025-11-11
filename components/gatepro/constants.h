@@ -68,11 +68,11 @@ enum GateProMsgType : uint8_t {
    MOTOR_EVENT_OPENING,
    MOTOR_EVENT_OPENED,
    MOTOR_EVENT_CLOSING,
-   MOTOR_EVENT_AUTOCLOSING, // defined for possible future usage, but currently unused
+   MOTOR_EVENT_AUTOCLOSING,
    MOTOR_EVENT_CLOSED,
    MOTOR_EVENT_STOPPED,
-   MOTOR_EVENT_PED_OPENING, // for future reference, unused for now
-   MOTOR_EVENT_PED_OPENED   // ^- same
+   MOTOR_EVENT_PED_OPENING, 
+   MOTOR_EVENT_PED_OPENED   
 };
 
 struct GateProMsgConstant {
@@ -114,15 +114,15 @@ const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
    // $V1PKF0,??,Closing;src=0001\r\n
    {MOTOR_EVENT_CLOSING, {11, 7, "Closing"}},
    // $V1PKF0,??,AutoClosing;src=0001\r\n
-   {MOTOR_EVENT_CLOSING, {11, 11, "AutoClosing"}}, // for all currently known scopes, autoclose === close
+   {MOTOR_EVENT_AUTOCLOSING, {11, 11, "AutoClosing"}},
    // $V1PKF0,??,Closed;src=0001\r\n
    {MOTOR_EVENT_CLOSED, {11, 6, "Closed"}},
    // $V1PKF0,??,Stopped;src=0001\r\n
    {MOTOR_EVENT_STOPPED, {11, 7, "Stopped"}},
    // $V1PKF0,??,PedOpening;src=P00287D7\r\n
-   {MOTOR_EVENT_OPENING, {11, 10, "PedOpening"}}, // ped opening is just the same as opening for our logic
+   {MOTOR_EVENT_PED_OPENING, {11, 10, "PedOpening"}},
    // $V1PKF0,??,PedOpened;src=P00287D7\r\n
-   {MOTOR_EVENT_OPENED, {11, 9, "PedOpened"}}, // ped opening is just the same as opening for our logic
+   {MOTOR_EVENT_PED_OPENED, {11, 9, "PedOpened"}},
 };
 
 // necessary for comfortable processing & to avoid confusion
