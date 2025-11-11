@@ -164,5 +164,5 @@ async def to_code(config):
       ts = await text_sensor.new_text_sensor(conf)
       await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
-      cg.add(var.set_txt_devinfo(txt))
+      cg.add(var.set_txt_devinfo(ts))
 
