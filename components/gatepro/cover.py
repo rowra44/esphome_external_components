@@ -25,6 +25,7 @@ GateProSelect = gatepro_ns.class_(
 )
 SELECT_SCHEMA = select.select_schema(GateProSelect).extend(
     {cv.GenerateID(CONF_ID): cv.declare_id(GateProSelect)}
+)
 
 CONF_OPERATIONAL_SPEED = "operational_speed"
 
