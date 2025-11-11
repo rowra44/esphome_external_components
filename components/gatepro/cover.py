@@ -3,20 +3,28 @@ import esphome.config_validation as cv
 from esphome.components import uart, sensor, cover, button, number, text_sensor, switch
 from esphome.const import CONF_ID, ICON_EMPTY, UNIT_EMPTY, CONF_NAME
 
-AUTO_LOAD = ["switch"]
-DEPENDENCIES = ["uart", "cover", "button"]
+AUTO_LOAD = ["switch", "select", "button"]
+DEPENDENCIES = ["uart", "cover"]
 
 gatepro_ns = cg.esphome_ns.namespace("gatepro")
 GatePro = gatepro_ns.class_(
     "GatePro", cover.Cover, cg.PollingComponent, uart.UARTDevice
 )
 
+# switch
 GateProSwitch = gatepro_ns.class_(
     "GateProSwitch", switch.Switch, cg.Component
 )
 SWITCH_SCHEMA = switch.switch_schema(GateProSwitch).extend(cv.COMPONENT_SCHEMA).extend(
     {cv.GenerateID(): cv.declare_id(GateProSwitch)}
 )
+
+# select
+GateProSelect = gatepro_ns.class_(
+    "GateProSelect", select.Select, cg.Component
+)
+SELECT_SCHEMA = select.select_schema(GateProSelect).extend(
+    {cv.GenerateID(CONF_ID): cv.declare_id(GateProSelect)}
 
 CONF_OPERATIONAL_SPEED = "operational_speed"
 
@@ -60,20 +68,33 @@ for k, v in SWITCHES.items():
       cv.Optional(k): SWITCH_SCHEMA
    })
 
-# NUMBER controllers mapping
+# SELECT controllers mapping
 # name - parameter list index
-NUMBERS = {
-   "auto_close": 1,
-   "operational_speed": 3,
-   "decel_dist": 4,
-   "decel_speed": 5,
-   "max_amp": 6,
-   "ped_dura": 7   
+SELECTS = {
+   "auto_close": {"idx": 1, "options": [
+      "off", "5s", "15s", "30s", "45s", "60s", "80s", "120s", "180s"
+   ]},
+   "operational_speed": {"idx": 3, "options": [
+      "50%", "70%", "85%", "100%"
+   ]},
+   "decel_dist": {"idx": 4, "options": [
+      "75%", "80%", "85%", "90%", "95%"
+   ]},
+   "decel_speed": {"idx": 5, "options": [
+      "80%", "60%", "40%", "25%"
+   ]},
+   "max_amp": {"idx": 6, "options": [
+      "2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A"
+   ]},
+   "ped_dura": {"idx": 7, "options": [
+      "3s", "6s", "9s", "12s", "15s", "18s"
+   ]}   
 }
-for k, v in NUMBERS.items():
+for k, v in SELECTS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(k): cv.use_id(number.Number)
+      cv.Optional(k): SELECT_SCHEMA
    })
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -88,6 +109,15 @@ async def to_code(config):
          await cg.register_component(sw, conf)
          await switch.register_switch(sw, conf)
          cg.add(var.set_switch(v, sw))
+
+    # selects
+    for k, v in SELECTS.items():
+      if k in config:
+         conf = config[k]
+         options = v["options"]
+         sel = await select.new_select(conf, options=options)
+         await register_component(sel, conf)
+         cg.add(var.set_select(sel, options list(range(0, len(options)))))
 
     # numbers
     for k, v in NUMBERS.items():

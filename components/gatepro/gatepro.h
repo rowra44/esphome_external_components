@@ -11,6 +11,7 @@
 #include "esphome/components/button/button.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/components/select/select.h"
 #include "constants.h"
 
 namespace esphome {
@@ -30,6 +31,11 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void set_switch(u_int param_idx, switch_::Switch *switch_) {
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
+
+      voit set_select(select::Select, std::vector<std::string>, std::vector<int>) {
+         
+      }
+
       void setup() override;
       void update() override;
       void loop() override;
