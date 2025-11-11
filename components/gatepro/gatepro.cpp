@@ -473,7 +473,6 @@ void GatePro::setup() {
                return;
             }
             this->set_param(swd.idx, swd.values[index]);
-            ESP_LOGD(TAG, "SEL: %s  %d", value.c_str(), index);
          }
       );
    }
