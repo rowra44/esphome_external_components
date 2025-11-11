@@ -7,8 +7,8 @@ namespace esphome {
 namespace gatepro {
 
 class GateProButton : public switch_::Switch, public Component {
-   protected:
-      void press_action() override { }
+   //protected:
+   //   void press_action() override { }
 };
 
 }  // namespace gatepro
