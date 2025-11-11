@@ -10,6 +10,13 @@ GatePro = gatepro_ns.class_(
     "GatePro", cover.Cover, cg.PollingComponent, uart.UARTDevice
 )
 
+GateProSwitch = gatepro_ns.class_(
+    "GateProSwitch", switch.Switch, cg.Component
+)
+SWITCH_SCHEMA = switch.switch_schema(GateProSwitch).extend(cv.COMPONENT_SCHEMA).extend(
+    {cv.GenerateID(): cv.declare_id(GateProSwitch)}
+)
+
 CONF_OPERATIONAL_SPEED = "operational_speed"
 
 cover.COVER_OPERATIONS.update({
@@ -49,7 +56,7 @@ SWITCHES = {
 }
 for k, v in SWITCHES.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
-      cv.Optional(k): cv.use_id(switch.Switch)
+      cv.Optional(k): SWITCH_SCHEMA
    })
 
 # NUMBER controllers mapping
@@ -75,8 +82,12 @@ async def to_code(config):
     # switches
     for k, v in SWITCHES.items():
       if k in config:
-         sw = await cg.get_variable(config[k])
+         conf = config[k]
+         sw = cg.new_Pvariable(conf[CONF_ID])
+         await cg.register_component(sw, conf)
+         await switch.register_switch(sw, conf)
          cg.add(var.set_switch(v, sw))
+
     # numbers
     for k, v in NUMBERS.items():
       if k in config:

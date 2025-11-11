@@ -51,6 +51,7 @@ enum GateProMsgType : uint8_t {
    GATEPRO_MSG_ACK_FULL_CLOSE,
    GATEPRO_MSG_ACK_FULL_OPEN,
    GATEPRO_MSG_ACK_STOP,
+   GATPERO_MSG_FINISHED,
    MOTOR_EVENT_OPENING,
    MOTOR_EVENT_OPENED,
    MOTOR_EVENT_CLOSING,
@@ -84,6 +85,8 @@ const std::map<GateProMsgType, const GateProMsgConstant> GateProMsgTypeMapping =
    {GATEPRO_MSG_ACK_FULL_OPEN, {0, 13, "ACK FULL OPEN"}},
    // ACK STOP\r\n
    {GATEPRO_MSG_ACK_STOP, {0, 8, "ACK STOP"}},
+   // $V1PKF1
+   {GATPERO_MSG_FINISHED, {0, 7, "$V1PKF1"}}
 };
 
 const std::map<GateProMsgType, const GateProMsgConstant> MotorEvents = {
