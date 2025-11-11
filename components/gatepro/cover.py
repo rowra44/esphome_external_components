@@ -118,7 +118,7 @@ async def to_code(config):
          options = v["options"]
          sel = await select.new_select(conf, options=options)
          await cg.register_component(sel, conf)
-         cg.add(var.set_select(sel, options, list(range(0, len(options)))))
+         cg.add(var.set_select(sel, v["idx"], options, list(range(0, len(options)))))
 
     # text sensors
     if CONF_DEVINFO in config:
