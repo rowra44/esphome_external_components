@@ -42,12 +42,6 @@ cover.COVER_OPERATIONS.update({
 })
 validate_cover_operation = cv.enum(cover.COVER_OPERATIONS, upper=True)
 
-# buttons
-CONF_LEARN = "learn"
-CONF_PARAMS_OD = "params"
-CONF_REMOTE_LEARN = "remote_learn"
-CONF_PED_OPEN = "ped_open"
-CONF_READ_STATUS = "read_status"
 # text sensors
 CONF_DEVINFO = "devinfo"
 CONF_LEARN_STATUS = "learn_status"
