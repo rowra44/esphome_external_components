@@ -120,12 +120,6 @@ async def to_code(config):
          await register_component(sel, conf)
          cg.add(var.set_select(sel, options, list(range(0, len(options)))))
 
-    # numbers
-    for k, v in NUMBERS.items():
-      if k in config:
-         num = await cg.get_variable(config[k])
-         cg.add(var.set_number(v, num))
-
     # text sensors
     if CONF_DEVINFO in config:
       txt = await cg.get_variable(config[CONF_DEVINFO])
