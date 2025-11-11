@@ -32,8 +32,8 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
 
-      voit set_select(select::Select, std::vector<std::string>, std::vector<int>) {
-         
+      void set_select(select::Select, std::vector<std::string>, std::vector<int>) {
+
       }
 
       void setup() override;
