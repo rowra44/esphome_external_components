@@ -25,9 +25,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void set_btn_read_status(esphome::button::Button *btn) { btn_read_status = btn; }
       void set_txt_devinfo(esphome::text_sensor::TextSensor *txt) { txt_devinfo = txt; }
       void set_txt_learn_status(esphome::text_sensor::TextSensor *txt) { txt_learn_status = txt; }
-      void set_number(u_int param_idx, number::Number *slider) {
-         this->sliders_with_indices.push_back(NumberWithIdx(param_idx, slider));
-      }
       void set_switch(u_int param_idx, switch_::Switch *switch_) {
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
@@ -94,12 +91,6 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       esphome::button::Button *btn_read_status;
       text_sensor::TextSensor *txt_devinfo{nullptr};
       text_sensor::TextSensor *txt_learn_status{nullptr};
-      struct NumberWithIdx{
-         u_int idx;
-         number::Number *slider;
-         NumberWithIdx(u_int idx, number::Number *slider) : idx(idx), slider(slider) {};
-      };
-      std::vector<NumberWithIdx> sliders_with_indices;
       struct SwitchWithIdx{
          u_int idx;
          switch_::Switch *switch_;

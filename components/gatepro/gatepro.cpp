@@ -279,10 +279,6 @@ void GatePro::process() {
 */
 void GatePro::publish_params() {
    if (!this->param_no_pub) {
-      // Numbers
-      for (auto swi : this->sliders_with_indices) {
-         swi.slider->publish_state(this->params[swi.idx]);
-      }
       // Switches
       for (auto swi : this->switches_with_indices) {
          swi.switch_->publish_state(this->params[swi.idx]);
@@ -457,17 +453,6 @@ void GatePro::setup() {
       });
    }
    
-   // Sliders
-   for (auto swi : this->sliders_with_indices) {
-      swi.slider->add_on_state_callback(
-         [this, swi](int value) {
-            if (this->params[swi.idx] == value) {
-               return;
-            }
-            this->set_param(swi.idx, value);
-         }
-      );
-   }
    // Switches
    for (auto swi : this->switches_with_indices) {
       swi.switch_->add_on_state_callback(
