@@ -160,8 +160,9 @@ async def to_code(config):
 
     # text sensors
     if CONF_DEVINFO in config:
-      txt = await cg.get_variable(config[CONF_DEVINFO])
+      conf = config[CONF_DEVINFO]
+      ts = await text_sensor.new_text_sensor(conf)
+      await cg.register_component(ts, conf)
+      await text_sensor.register_text_sensor(ts, conf)
       cg.add(var.set_txt_devinfo(txt))
-    if CONF_LEARN_STATUS in config:
-      txt = await cg.get_variable(config[CONF_LEARN_STATUS])
-      cg.add(var.set_txt_learn_status(txt))
+
