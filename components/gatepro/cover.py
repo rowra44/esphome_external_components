@@ -70,26 +70,38 @@ for k, v in SWITCHES.items():
    })
 
 # SELECT controllers mapping
-# name - parameter list index
+# name - {parameter list index, available options' list}
 SELECTS = {
-   "auto_close": {"idx": 1, "options": [
-      "off", "5s", "15s", "30s", "45s", "60s", "80s", "120s", "180s"
-   ]},
-   "operational_speed": {"idx": 3, "options": [
-      "50%", "70%", "85%", "100%"
-   ]},
-   "decel_dist": {"idx": 4, "options": [
-      "75%", "80%", "85%", "90%", "95%"
-   ]},
-   "decel_speed": {"idx": 5, "options": [
-      "80%", "60%", "40%", "25%"
-   ]},
-   "max_amp": {"idx": 6, "options": [
-      "2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A"
-   ]},
-   "ped_dura": {"idx": 7, "options": [
-      "3s", "6s", "9s", "12s", "15s", "18s"
-   ]}   
+   "auto_close": {
+      "idx": 1,
+      "options": ["off", "5s", "15s", "30s", "45s", "60s", "80s", "120s", "180s"],
+      "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+   },
+   "operational_speed": {
+      "idx": 3,
+      "options": ["50%", "70%", "85%", "100%"],
+      "values": [0, 1, 2, 3]
+   },
+   "decel_dist": {
+      "idx": 4,
+      "options": ["75%", "80%", "85%", "90%", "95%"],
+      "values": [0, 1, 2, 3, 4]
+   },
+   "decel_speed": {
+      "idx": 5,
+      "options": ["80%", "60%", "40%", "25%"],
+      "values": [0, 1, 2, 3]
+   },
+   "max_amp": {
+      "idx": 6,
+      "options": ["2A", "3A", "4A", "5A", "6A", "7A", "8A", "9A"],
+      "values": [0, 1, 2, 3, 4, 5, 6, 7]
+   },
+   "ped_dura": {
+      "idx": 7,
+      "options": ["3s", "6s", "9s", "12s", "15s", "18s"],
+      "values": [0, 1, 2, 3, 4, 5]
+   }   
 }
 for k, v in SELECTS.items():
    CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
@@ -116,9 +128,10 @@ async def to_code(config):
       if k in config:
          conf = config[k]
          options = v["options"]
+         values = v["values"]
          sel = await select.new_select(conf, options=options)
          await cg.register_component(sel, conf)
-         cg.add(var.set_select(sel, v["idx"], options, list(range(0, len(options)))))
+         cg.add(var.set_select(sel, v["idx"], options, values))
 
     # text sensors
     if CONF_DEVINFO in config:
