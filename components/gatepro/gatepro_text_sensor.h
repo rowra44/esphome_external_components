@@ -7,8 +7,7 @@ namespace esphome {
 namespace gatepro {
 
 class GateProTextSensor : public text_sensor::TextSensor, public Component {
-   protected:
-      void press_action() override { }
+   
 };
 
 }  // namespace gatepro
