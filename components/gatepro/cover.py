@@ -3,6 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import uart, sensor, cover, button, number, text_sensor, switch
 from esphome.const import CONF_ID, ICON_EMPTY, UNIT_EMPTY, CONF_NAME
 
+AUTO_LOAD = ["switch"]
 DEPENDENCIES = ["uart", "cover", "button"]
 
 gatepro_ns = cg.esphome_ns.namespace("gatepro")
