@@ -16,24 +16,38 @@ cover:
     name: "Driveway gate"
     device_class: gate
     update_interval: 0.5s
+    opening_dir:
+      name: "Opening direction"
     auto_close:
       name: "Auto close"
     operational_speed:
       name: "Operational speed"
     decel_dist:
-      name: "Decel. distance"
+      name: "Decel. at distance"
     decel_speed:
-      name: "Decel. speed"
+      name: "Decel. speed target"
     max_amp:
       name: "Max torque"
     ped_dura:
       name: "Pedestr. duration"
+    flashing_light:
+      name: "Flashing light"
+    overload_action:
+      name: "Torque overload action"
+    remote_btn_open:
+      name: "Remote btn.: open"
+    remote_btn_ped:
+      name: "Remote btn.: pedestr."
+    remote_btn_extdev:
+      name: "Remote btn.: external dev."
     infra1:
       name: "Infra-gate 1"
     infra2:
       name: "Infra-gate 2"
     stop_terminal:
       name: "Stop terminal fn"
+    op_method:
+      name: "Operational method"
     remote_learn:
       name: "Remote learn"
     ped_open:
@@ -42,6 +56,7 @@ cover:
       name: "Dev. info"
     learn_status:
       name: "Learn status"
+
 
 button:
   - platform: restart
