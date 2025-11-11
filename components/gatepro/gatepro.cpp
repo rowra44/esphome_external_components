@@ -287,6 +287,10 @@ void GatePro::publish_params() {
       for (auto swi : this->switches_with_indices) {
          swi.switch_->publish_state(this->params[swi.idx]);
       }
+      // Selects
+      for (auto swd : this->select_with_data) {
+         swd.select->publish_state(swd.values[this->params[swd.idx]]);
+      }
    }
 }
 
