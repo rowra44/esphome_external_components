@@ -477,14 +477,13 @@ void GatePro::setup() {
    }
 
    //selects
-   for (auto swi : this->select_with_data) {
-      swi.switch_->add_on_state_callback(
-         [this, swi](const std::string &value, size_t index) {
+   for (auto swd : this->select_with_data) {
+      swd.select->add_on_state_callback(
+         [this, swd](const std::string &value, size_t index) {
             ESP_LOGD(TAG, "SEL: %s  %d", value.c_str(), index);
          }
       );
    }
-         select_with_data.push_back(sel, options, values);
 
 }
 
