@@ -35,6 +35,14 @@ BUTTON_SCHEMA = select.select_schema(GateProButton).extend(
     {cv.GenerateID(): cv.declare_id(GateProButton)}
 )
 
+# text sensor
+GateProButton = gatepro_ns.class_(
+    "GateProButton", button.Button, cg.Component
+)
+TEXT_SENSOR_SCHEMA = text_sensor.text_sensor_schema(text_sensor.TextSensor).extend(
+    {cv.GenerateID(): cv.declare_id(text_sensor.TextSensor)}
+)
+
 CONF_OPERATIONAL_SPEED = "operational_speed"
 
 cover.COVER_OPERATIONS.update({
@@ -49,8 +57,7 @@ CONF_LEARN_STATUS = "learn_status"
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
         # TEXT SENSORS
-        cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
-        cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
+        cv.Optional(CONF_DEVINFO): TEXT_SENSOR_SCHEMA,
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
 
 # BUTTON controllers mapping
