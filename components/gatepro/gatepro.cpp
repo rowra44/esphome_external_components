@@ -429,7 +429,7 @@ void GatePro::setup() {
    this->queue_gatepro_cmd(GATEPRO_CMD_READ_LEARN_STATUS);
 
    // set up frontend controllers
-   if (btn_learn) {
+   /*if (btn_learn) {
       this->btn_learn->add_on_press_callback([this](){
          this->queue_gatepro_cmd(GATEPRO_CMD_LEARN);
       });
@@ -451,7 +451,7 @@ void GatePro::setup() {
       this->btn_read_status->add_on_press_callback([this](){
          this->queue_gatepro_cmd(GATEPRO_CMD_READ_STATUS);
       });
-   }
+   }*/
    
    // Switches
    for (auto swi : this->switches_with_indices) {
@@ -461,6 +461,15 @@ void GatePro::setup() {
                return;
             }
             this->set_param(swi.idx, state ? 1 : 0);
+         }
+      );
+   }
+
+   // Buttons
+   for (auto btn : this->buttons_with_cmds) {
+      btn.button->add_on_press_callback(
+         [this, btn]() {
+            this->queue_gatepro_cmd(btn.cmd);
          }
       );
    }

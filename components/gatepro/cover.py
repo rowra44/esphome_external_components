@@ -27,6 +27,14 @@ SELECT_SCHEMA = select.select_schema(GateProSelect).extend(
     {cv.GenerateID(CONF_ID): cv.declare_id(GateProSelect)}
 )
 
+# button
+GateProButton = gatepro_ns.class_(
+    "GateProButton", button.Button, cg.Component
+)
+BUTTON_SCHEMA = select.select_schema(GateProButton).extend(
+    {cv.GenerateID(): cv.declare_id(GateProButton)}
+)
+
 CONF_OPERATIONAL_SPEED = "operational_speed"
 
 cover.COVER_OPERATIONS.update({
@@ -47,15 +55,26 @@ CONF_LEARN_STATUS = "learn_status"
 CONFIG_SCHEMA = cover.cover_schema(GatePro).extend(
     {
         # BUTTON controllers
-        cv.GenerateID(): cv.declare_id(GatePro),
-        cv.Optional(CONF_LEARN): cv.use_id(button.Button),
-        cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
-        cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
-        cv.Optional(CONF_READ_STATUS): cv.use_id(button.Button),
+        #cv.GenerateID(): cv.declare_id(GatePro),
+        #cv.Optional(CONF_LEARN): cv.use_id(button.Button),
+        #cv.Optional(CONF_PARAMS_OD): cv.use_id(button.Button),
+        #cv.Optional(CONF_REMOTE_LEARN): cv.use_id(button.Button),
+        #cv.Optional(CONF_READ_STATUS): cv.use_id(button.Button),
         # TEXT SENSORS
         cv.Optional(CONF_DEVINFO): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_LEARN_STATUS): cv.use_id(text_sensor.TextSensor),
     }).extend(cv.COMPONENT_SCHEMA).extend(cv.polling_component_schema("60s")).extend(uart.UART_DEVICE_SCHEMA)
+
+# BUTTON controllers mapping
+# name - command name list
+BUTTONS = {
+   "params": "GATEPRO_CMD_READ_PARAMS",
+}
+for k, v in BUTTONS.items():
+   CONFIG_SCHEMA = CONFIG_SCHEMA.extend({
+      cv.Optional(k): BUTTON_SCHEMA
+   })
+
 
 # SWITCH controllers mapping
 # name - parameter list index
@@ -123,6 +142,15 @@ async def to_code(config):
          await switch.register_switch(sw, conf)
          cg.add(var.set_switch(v, sw))
 
+   # buttons
+   for k, v in BUTTONS.items():
+      if k in config:
+         conf = config[k]
+         btn = cg.new_Pvariable(conf[CONF_ID])
+         await cg.register_component(btn, conf)
+         await button.register_button(btn, conf)
+         cg.add(var.set_button(btn, v))
+
     # selects
     for k, v in SELECTS.items():
       if k in config:
@@ -141,15 +169,15 @@ async def to_code(config):
       txt = await cg.get_variable(config[CONF_LEARN_STATUS])
       cg.add(var.set_txt_learn_status(txt))
     # buttons
-    if CONF_LEARN in config:
-        btn = await cg.get_variable(config[CONF_LEARN])
-        cg.add(var.set_btn_learn(btn))
-    if CONF_PARAMS_OD in config:
-        btn = await cg.get_variable(config[CONF_PARAMS_OD])
-        cg.add(var.set_btn_params_od(btn))
-    if CONF_REMOTE_LEARN in config:
-        btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
-        cg.add(var.set_btn_remote_learn(btn))
-    if CONF_READ_STATUS in config:
-        btn = await cg.get_variable(config[CONF_READ_STATUS])
-        cg.add(var.set_btn_read_status(btn))
+    #if CONF_LEARN in config:
+    #    btn = await cg.get_variable(config[CONF_LEARN])
+    #    cg.add(var.set_btn_learn(btn))
+    #if CONF_PARAMS_OD in config:
+    #    btn = await cg.get_variable(config[CONF_PARAMS_OD])
+    #    cg.add(var.set_btn_params_od(btn))
+    #if CONF_REMOTE_LEARN in config:
+    #    btn = await cg.get_variable(config[CONF_REMOTE_LEARN])
+    #    cg.add(var.set_btn_remote_learn(btn))
+    #if CONF_READ_STATUS in config:
+    #    btn = await cg.get_variable(config[CONF_READ_STATUS])
+    #    cg.add(var.set_btn_read_status(btn))

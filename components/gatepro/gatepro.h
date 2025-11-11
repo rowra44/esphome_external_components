@@ -28,7 +28,9 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       void set_switch(u_int param_idx, switch_::Switch *switch_) {
          this->switches_with_indices.push_back(SwitchWithIdx(param_idx, switch_));
       }
-
+      void set_button(button::Button *button, std::string command_name) {
+         this->buttons_with_cmds.push_back(ButtonWithCmd(button, GateProUIBtnMapping.at(command_name)));
+      }
       void set_select(select::Select *sel, int idx, std::vector<std::string> options, std::vector<int> values) {
          select_with_data.push_back(SelectWithIdxOpts(sel, idx, options, values));
       }
@@ -91,14 +93,21 @@ class GatePro : public cover::Cover, public PollingComponent, public uart::UARTD
       esphome::button::Button *btn_read_status;
       text_sensor::TextSensor *txt_devinfo{nullptr};
       text_sensor::TextSensor *txt_learn_status{nullptr};
-      struct SwitchWithIdx{
+      struct SwitchWithIdx {
          u_int idx;
          switch_::Switch *switch_;
          SwitchWithIdx(u_int idx, switch_::Switch *switch_) : idx(idx), switch_(switch_) {};
       };
       std::vector<SwitchWithIdx> switches_with_indices;
 
-      struct SelectWithIdxOpts{
+      struct ButtonWithCmd {
+         button::Button *button;
+         GateProCmd cmd;
+         ButtonWithCmd(button::Button *button, GateProCmd cmd) : button(button), cmd(cmd) {};
+      };
+      std::vector<ButtonWithCmd> buttons_with_cmds;
+
+      struct SelectWithIdxOpts {
          select::Select *select;
          u_int idx;
          std::vector<std::string> options;
