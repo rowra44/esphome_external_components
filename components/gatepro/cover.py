@@ -140,7 +140,7 @@ SELECTS = {
       "values": [0, 1, 2, 3]
    },
    "remote_btn_open": {
-      "idx:" 10,
+      "idx": 10,
       "options": ["A", "B", "C", "D"],
       "values": [0, 1, 2, 3]
    },
