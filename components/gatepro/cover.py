@@ -117,7 +117,7 @@ async def to_code(config):
          conf = config[k]
          options = v["options"]
          sel = await select.new_select(conf, options=options)
-         await register_component(sel, conf)
+         await cg.register_component(sel, conf)
          cg.add(var.set_select(sel), options, list(range(0, len(options))))
 
     # text sensors
