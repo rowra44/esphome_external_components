@@ -19,7 +19,7 @@ static const uint8_t READ_TIMEOUT = 20;  // The maximum time to wait before cons
 static const uint8_t MIN_TEMPERATURE = 16;   // Minimum temperature as reported by EWPE SMART APP
 static const uint8_t MAX_TEMPERATURE = 30;   // Maximum temperature as supported by EWPE SMART APP
 static const float TEMPERATURE_STEP = 1.0;   // Steps the temperature can be set in
-static const float TEMPERATURE_TOLERANCE = 2;  // The tolerance to allow when checking the climate state
+//static const float TEMPERATURE_TOLERANCE = 2;  // The tolerance to allow when checking the climate state
 static const uint8_t TEMPERATURE_THRESHOLD = 100;  // Maximum temperature the AC can report (formally 119.5 for sinclair protocol, but 100 is impossible, soo...)
 
 namespace fan_modes{
@@ -180,7 +180,7 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         virtual void on_xfan_change(bool xfan) = 0;
         virtual void on_save_change(bool save) = 0;
 
-        climate::ClimateAction determine_action();
+        //climate::ClimateAction determine_action();
 
         void log_packet(std::vector<uint8_t> data, bool outgoing = false);
 };

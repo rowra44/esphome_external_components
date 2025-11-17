@@ -250,7 +250,7 @@ void SinclairAC::update_save(bool save)
     }
 }
 
-climate::ClimateAction SinclairAC::determine_action()
+/*climate::ClimateAction SinclairAC::determine_action()
 {
     if (this->mode == climate::CLIMATE_MODE_OFF) {
         return climate::CLIMATE_ACTION_OFF;
@@ -267,7 +267,7 @@ climate::ClimateAction SinclairAC::determine_action()
     } else {
         return climate::CLIMATE_ACTION_IDLE;
     }
-}
+}*/
 
 /*
  * Sensor handling
