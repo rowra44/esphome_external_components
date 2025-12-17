@@ -386,7 +386,7 @@ void GatePro::read_uart() {
    
    // read the whole buffer into our own buffer
    // (if there's remainder from previous msgs, concatenate)
-   uint8_t* bytes = new byte[available];
+   uint8_t* bytes = new uint8_t[available];
    this->read_array(bytes, available);
    this->msg_buff += this->convert(bytes, available);
 
