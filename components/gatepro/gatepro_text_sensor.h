@@ -6,7 +6,7 @@
 namespace esphome {
 namespace gatepro {
 
-class GateProTextSensor : public Component, public text_sensor::TextSensor {
+class GateProTextSensor : public text_sensor::TextSensor {
    public:   
 };
 
