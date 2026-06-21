@@ -204,6 +204,7 @@ async def to_code(config):
       ts = await text_sensor.new_text_sensor(conf)
       #await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
+      ts.set_type(text_sensor.TextSensor)
       cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
       cg.add(var.set_txt_devinfo(ts))
 
@@ -212,6 +213,7 @@ async def to_code(config):
       ts = await text_sensor.new_text_sensor(conf)
       #await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
+      ts.set_type(text_sensor.TextSensor)
       cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
       cg.add(var.set_txt_learn_status(ts))
 
