@@ -316,7 +316,12 @@ void SinclairAC::set_display_select(select::Select *display_select)
 void SinclairAC::set_display_unit_select(select::Select *display_unit_select)
 {
     this->display_unit_select_ = display_unit_select;
-    this->display_unit_select_->add_on_state_callback([this](const std::string &value, size_t index) {
+    this->display_unit_select_->add_on_state_callback([this](size_t index) {
+        auto selected = this->display_unit_select_->at(index);
+        if (!selected.has_value()) {
+            return;
+        }
+        auto &value = selected.value();
         if (value == this->display_unit_state_)
             return;
         this->on_display_unit_change(value);
