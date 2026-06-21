@@ -12,10 +12,13 @@ climate::ClimateTraits SinclairAC::traits()
 {
     auto traits = climate::ClimateTraits();
 
-    traits.set_supports_action(false);
+    // ToDo: commented out, is it ok?
+    //traits.set_supports_action(false);
 
-    traits.set_supports_current_temperature(true);
-    traits.set_supports_two_point_target_temperature(false);
+    traits.set_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
+    
+    // ToDo: commented out, is it ok?
+    //traits.set_supports_two_point_target_temperature(false);
     traits.set_visual_min_temperature(MIN_TEMPERATURE);
     traits.set_visual_max_temperature(MAX_TEMPERATURE);
     traits.set_visual_temperature_step(TEMPERATURE_STEP);
