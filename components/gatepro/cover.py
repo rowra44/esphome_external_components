@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import uart, sensor, cover, button, number, text_sensor, switch, select
-from esphome.const import CONF_ID, ICON_EMPTY, UNIT_EMPTY, CONF_NAME
+from esphome.const import CONF_ID, ICON_EMPTY, UNIT_EMPTY, CONF_NAME, CONF_ENTITY_CATEGORY
 
 AUTO_LOAD = ["switch", "select", "button"]
 DEPENDENCIES = ["uart", "cover"]
@@ -201,19 +201,19 @@ async def to_code(config):
     # text sensors
     if CONF_DEVINFO in config:
       conf = config[CONF_DEVINFO]
+      conf[CONF_ENTITY_CATEGORY] = "diagnostic"
       ts = await text_sensor.new_text_sensor(conf)
       #await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
-      ts.set_type(text_sensor.TextSensor)
-      cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
+      #cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
       cg.add(var.set_txt_devinfo(ts))
 
     if CONF_LEARN_STATUS in config:
       conf = config[CONF_LEARN_STATUS]
+      conf[CONF_ENTITY_CATEGORY] = "diagnostic"
       ts = await text_sensor.new_text_sensor(conf)
       #await cg.register_component(ts, conf)
       await text_sensor.register_text_sensor(ts, conf)
-      ts.set_type(text_sensor.TextSensor)
-      cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
+      #cg.add(ts.set_entity_category(cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC))
       cg.add(var.set_txt_learn_status(ts))
 
