@@ -2,6 +2,8 @@
 
 #include <map>
 #include <vector>
+#include <queue>
+#include <functional>
 #include "esphome.h"
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
