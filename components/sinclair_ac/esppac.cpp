@@ -306,7 +306,11 @@ void SinclairAC::set_horizontal_swing_select(select::Select *horizontal_swing_se
 void SinclairAC::set_display_select(select::Select *display_select)
 {
     this->display_select_ = display_select;
-    this->display_select_->add_on_state_callback([this](const std::string &value, size_t index) {
+    this->display_select_->add_on_state_callback([this](size_t index) {
+        auto selected = this->display_select_->at(index);
+        if (!selected.has_value())
+            return;
+        auto &value = selected.value();
         if (value == this->display_state_)
             return;
         this->on_display_change(value);
