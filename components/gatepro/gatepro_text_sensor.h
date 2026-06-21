@@ -6,7 +6,10 @@
 namespace esphome {
 namespace gatepro {
 
-class GateProTextSensor : public text_sensor::TextSensor, public Component {
+class GateProTextSensor : public Component, public text_sensor::TextSensor {
+   public:
+    using text_sensor::TextSensor::set_entity_category;
+    using text_sensor::TextSensor::get_entity_category;
    
 };
 
