@@ -461,7 +461,7 @@ void GatePro::setup() {
    //selects
    for (auto swd : this->select_with_data) {
       swd.select->add_on_state_callback(
-         [this, swd](const std::string &value, size_t index) {
+         [this, swd](size_t index) {
             if (this->params[swd.idx] == swd.values[index]) {
                return;
             }
