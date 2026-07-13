@@ -1,0 +1,109 @@
+esphome:
+  name: gree_ac
+  friendly_name: GreeAC
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  baud_rate: 0
+  level: DEBUG
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "xxxxxxxxxxxxxxxxxxxxxxxx"
+
+ota:
+  - platform: esphome
+    password: "xxxxxxxxxxxxxxxxxxxxxxx"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  #power_save_mode: NONE
+  ap:
+    ssid: "GreeAC Fallback Hotspot"
+    password: "xxxxxxxxxxx"
+
+captive_portal:
+
+web_server:
+  version: 3
+  auth:
+    username: "admin"
+    password: "xxxxxxxxxxxxxxx"
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+    entity_category: "diagnostic"
+
+button:
+  - platform: restart
+    name: "Reboot"
+    id: reboot_btn
+    entity_category: "diagnostic"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB sensor"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+  - platform: uptime
+    type: seconds
+    name: "Uptime sensor"
+    id: uptime_sensor
+    update_interval: 60s
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Current temp sensor"
+    lambda: |-
+      return id(gree_ac).current_temperature;      
+    update_interval: 10s
+  - platform: internal_temperature
+    name: "ESP32 Temperature"
+    entity_category: "diagnostic"
+    update_interval: 10s
+########################################
+
+external_components:
+  #- source: github://rowra44/esphome_gree_ac@main
+  - source: github://rowra44/esphome_external_components
+    components: [ sinclair_ac ]
+    refresh: 0s
+
+uart:
+  id: ac_uart
+  tx_pin: GPIO3
+  rx_pin: GPIO1
+  baud_rate: 4800
+  parity: EVEN
+
+climate:
+  - platform: sinclair_ac
+    name: GreeHVAC_Bedroom
+    id: greehvac_bedroom
+    horizontal_swing_select:
+      name: Horizontal Swing Mode
+    vertical_swing_select:
+      name: Vertical Swing Mode
+    display_select:
+      name: Display Mode
+    display_unit_select:
+      name: Display Unit
+    plasma_switch:
+      name: Plasma
+    beeper_switch:
+      name: Beeper      
+    sleep_switch:
+      name: Sleep
+    xfan_switch:
+      name: X-fan
+    save_switch:
+      name: Save/8 Heat  
+    
+
